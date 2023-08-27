@@ -2,6 +2,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use crate::layout::Layout;
 
+pub enum ElementType {
+    Text(String),
+    Button,
+}
+
 pub struct Element {
     id:             String,
     class:          Vec<String>,

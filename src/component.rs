@@ -20,25 +20,51 @@ pub fn traverse<F>(root: &Rc<RefCell<Element>>, mut action: F)
     }
 }
 
-pub fn compute_dimensions(elem: &Rc<RefCell<Element>>) {
-    let mut elem_borrow = elem.borrow_mut();
-    for child in &elem_borrow.children {
-        compute_dimensions(&child.clone());
+pub fn compute_dimensions(parent_ref: Rc<RefCell<Element>>) {
+    let mut parent = parent_ref.borrow_mut();
+    for child in &parent.children {
+        compute_dimensions(child.clone());
     }
 
+    let (mut new_width, mut new_height) = match &parent.layout.display {
+        Display::Block() => {
+            (parent.children.iter()
+                 .map(|child| child.borrow().layout.width())
+                 .max().unwrap_or_default(),
+             parent.children.iter()
+                 .map(|child| child.borrow().layout.height())
+                 .sum())
+        }
+        Display::Flex{ direction } => {
+            match direction {
+                FlexDirection::Row | FlexDirection::RowReverse => {
+                    (parent.children.iter()
+                         .map(|child| child.borrow().layout.width())
+                         .sum(),
+                     parent.children.iter()
+                         .map(|child| child.borrow().layout.height())
+                         .max().unwrap_or_default())
+                }
+                FlexDirection::Col | FlexDirection::ColReverse => {
+                    (parent.children.iter()
+                         .map(|child| child.borrow().layout.width())
+                         .max().unwrap_or_default(),
+                     parent.children.iter()
+                         .map(|child| child.borrow().layout.height())
+                         .sum())
+                }
+            }
+        }
+    };
+
     // Calculate width
-    elem_borrow.layout.width = elem_borrow.children.iter()
-        .map(|child| child.borrow().layout.width())
-        .sum();
+    parent.layout.width = new_width;
 
     // Calculate height
-    elem_borrow.layout.height = elem_borrow.children.iter()
-        .map(|child| child.borrow().layout.height())
-        .sum();
-
+    parent.layout.height = new_height;
 }
 
-pub fn compute_positions(parent_ref: &Rc<RefCell<Element>>, dx: usize, dy: usize) {
+pub fn compute_positions(parent_ref: Rc<RefCell<Element>>, dx: usize, dy: usize) {
     {
         let mut parent = parent_ref.borrow_mut();
         parent.layout.x = dx;
@@ -52,8 +78,8 @@ pub fn compute_positions(parent_ref: &Rc<RefCell<Element>>, dx: usize, dy: usize
         Display::Block() => {
             (parent.layout.content_x(), parent.layout.content_y())
         }
-        Display::Flex(properties) => {
-            match properties.direction {
+        Display::Flex{ direction } => {
+            match direction {
                 FlexDirection::Row | FlexDirection::Col => {
                     (parent.layout.content_x(), parent.layout.content_y())
                 }
@@ -72,8 +98,8 @@ pub fn compute_positions(parent_ref: &Rc<RefCell<Element>>, dx: usize, dy: usize
         {
             match &parent.layout.display {
                 Display::Block() => {}
-                Display::Flex(properties) => {
-                    match properties.direction {
+                Display::Flex{direction} => {
+                    match direction {
                         FlexDirection::Row | FlexDirection::Col => { }
                         FlexDirection::RowReverse => {
                             new_dx -= child.borrow().layout.width();
@@ -86,13 +112,15 @@ pub fn compute_positions(parent_ref: &Rc<RefCell<Element>>, dx: usize, dy: usize
             }
         }
 
-        compute_positions(&child, new_dx, new_dy);
+        compute_positions(child.clone(), new_dx, new_dy);
 
         {
             match &parent.layout.display {
-                Display::Block() => {}
-                Display::Flex(properties) => {
-                    match properties.direction {
+                Display::Block() => {
+                    new_dy += child.borrow().layout.height();
+                }
+                Display::Flex { direction } => {
+                    match direction {
                         FlexDirection::Row => {
                             new_dx += child.borrow().layout.width();
                         }

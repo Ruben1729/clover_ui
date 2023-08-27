@@ -4,6 +4,7 @@ use minifb::{Key, ScaleMode, Window, WindowOptions};
 use clover_ui::component::{compute_positions, compute_dimensions, traverse};
 use clover_ui::element::{Element, ElementBuilder};
 use clover_ui::layout::{Color, Display, FlexDirection, FlexProperties, LayoutBuilder};
+use clover_ui::layout::Display::Flex;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
@@ -51,9 +52,9 @@ fn main() {
                 .with_margin(10, 10, 10, 10)
                 .with_border_width(10)
                 .with_border_color(Color::new(255, 0, 0, 255))
-                .with_display(Display::Flex(FlexProperties {
-                    direction: FlexDirection::ColReverse
-                }))
+                .with_display(Flex {
+                    direction: FlexDirection::Col
+                })
                 .build()
         )
         .build();
@@ -73,6 +74,9 @@ fn main() {
                 .with_margin(10, 10, 10, 10)
                 .with_padding(10, 10, 10, 10)
                 .with_background_color(Color::new(255, 0, 255, 0))
+                .with_display(Flex {
+                    direction: FlexDirection::Col
+                })
                 .build()
         ).build();
 
@@ -98,12 +102,15 @@ fn main() {
     Element::insert(&flex_parent, &red_child);
     Element::insert(&flex_parent, &blue_child);
     Element::insert(&flex_parent, &green_child);
-    Element::insert(&flex_parent, &custom_child);
-
-    compute_dimensions(&root);
-    compute_positions(&root, 0, 0);
+    Element::insert(&green_child, &custom_child);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
+
+        {
+            compute_dimensions(root.clone());
+            compute_positions(root.clone(), 0, 0);
+        }
+
         traverse(&root, |elem| {
             for dy in 0..elem.layout.height() {
                 for dx in 0..elem.layout.width() {

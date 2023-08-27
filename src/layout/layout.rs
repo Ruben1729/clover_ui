@@ -18,11 +18,11 @@ pub struct Layout {
 
 impl Layout {
     pub fn content_x(&self) -> usize {
-        self.margin.left + self.border.left + self.padding.left
+        self.x + self.margin.left + self.border.left + self.padding.left
     }
 
     pub fn content_y(&self) -> usize {
-        self.margin.top + self.border.top + self.padding.top
+        self.y + self.margin.top + self.border.top + self.padding.top
     }
 
     pub fn width(&self) -> usize {
