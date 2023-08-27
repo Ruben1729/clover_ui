@@ -1,10 +1,9 @@
 extern crate minifb;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
-use clover_ui::element::{Element, ElementType};
-use clover_ui::layout::Color;
+use minifb::{Key, ScaleMode, Window, WindowOptions};
+use clover_ui::component::{compute_positions, compute_dimensions, traverse};
+use clover_ui::element::{Element, ElementBuilder};
+use clover_ui::layout::{Color, Display, FlexDirection, FlexProperties, LayoutBuilder};
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
@@ -35,56 +34,85 @@ fn main() {
             panic!("{}", e);
         });
 
-    let root = Element::new(ElementType::Div);
-    {
-        let mut root_el = root.borrow_mut();
-        root_el.layout.width = WIDTH;
-        root_el.layout.height = HEIGHT;
-    }
+    let root =
+        ElementBuilder::default()
+        .with_layout(
+        LayoutBuilder::default()
+            .with_border_color(Color::new(255, 255, 255, 255))
+            .with_border_width(5)
+            .with_height(HEIGHT)
+            .with_width(WIDTH)
+            .build()
+        ).build();
 
+    let flex_parent = ElementBuilder::default()
+        .with_layout(
+            LayoutBuilder::default()
+                .with_margin(10, 10, 10, 10)
+                .with_border_width(10)
+                .with_border_color(Color::new(255, 0, 0, 255))
+                .with_display(Display::Flex(FlexProperties {
+                    direction: FlexDirection::ColReverse
+                }))
+                .build()
+        )
+        .build();
 
-    let child = Element::new(ElementType::Div);
-    {
-        let mut child_el = child.borrow_mut();
-        child_el.layout.width = 100;
-        child_el.layout.height = 100;
-        child_el.layout.background_color = Color::new(255, 255, 0, 0);
-    }
+    let red_child = ElementBuilder::default()
+        .with_layout(
+            LayoutBuilder::default()
+                .with_margin(10, 10, 10, 10)
+                .with_padding(10, 10, 10, 10)
+                .with_background_color(Color::new(255, 255, 0, 0))
+                .build()
+        ).build();
 
-    Element::insert(&root, &child);
+    let green_child = ElementBuilder::default()
+        .with_layout(
+            LayoutBuilder::default()
+                .with_margin(10, 10, 10, 10)
+                .with_padding(10, 10, 10, 10)
+                .with_background_color(Color::new(255, 0, 255, 0))
+                .build()
+        ).build();
+
+    let blue_child = ElementBuilder::default()
+        .with_layout(
+            LayoutBuilder::default()
+                .with_margin(10, 10, 10, 10)
+                .with_padding(10, 10, 10, 10)
+                .with_background_color(Color::new(255, 0, 0, 255))
+                .build()
+        ).build();
+
+    let custom_child = ElementBuilder::default()
+        .with_layout(
+            LayoutBuilder::default()
+                .with_margin(10, 10, 10, 10)
+                .with_padding(10, 10, 10, 10)
+                .with_background_color(Color::new(255, 255, 0, 255))
+                .build()
+        ).build();
+
+    Element::insert(&root, &flex_parent);
+    Element::insert(&flex_parent, &red_child);
+    Element::insert(&flex_parent, &blue_child);
+    Element::insert(&flex_parent, &green_child);
+    Element::insert(&flex_parent, &custom_child);
+
+    compute_dimensions(&root);
+    compute_positions(&root, 0, 0);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-
         traverse(&root, |elem| {
-            // Execute logic for each element immediately
-            draw_rectangle(&mut buffer,
-                           elem.layout.x,
-                           elem.layout.y,
-                           elem.layout.width,
-                           elem.layout.height,
-                           elem.layout.background_color.get_u32());
+            for dy in 0..elem.layout.height() {
+                for dx in 0..elem.layout.width() {
+                    let index = (elem.layout.x + dx) + (elem.layout.y + dy) * WIDTH;
+                    buffer[index] = elem.layout.color_at_px(dx, dy);
+                }
+            }
         });
 
-        // Update the window with the buffer data
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
     }
 }
-
-fn traverse<F>(root: &Rc<RefCell<Element>>, mut action: F)
-    where
-        F: FnMut(&Element),
-{
-    let mut stack = Vec::new();
-    stack.push(Rc::clone(root));
-
-    while let Some(current) = stack.pop() {
-        let current_borrow = current.borrow();
-        action(&*current_borrow);
-
-        for child in current_borrow.children.iter().rev() {
-            stack.push(Rc::clone(child));
-        }
-    }
-}
-
-

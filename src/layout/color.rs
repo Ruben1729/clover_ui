@@ -1,27 +1,4 @@
-#[derive(Default)]
-pub struct Padding {
-    pub top:    usize,
-    pub right:  usize,
-    pub bottom: usize,
-    pub left:   usize
-}
-
-#[derive(Default)]
-pub struct Margin {
-    pub top:    usize,
-    pub right:  usize,
-    pub bottom: usize,
-    pub left:   usize
-}
-
-#[derive(Default)]
-pub struct Border {
-    pub color: Color,
-    pub style: usize,
-    pub width: usize,
-}
-
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Color {
     value: u32
 }
@@ -31,11 +8,15 @@ impl Color {
         let value = ((a as u32) << 24) | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
         Self { value }
     }
-
+    pub fn new_u32(val: u32) -> Self {
+        Color {
+            value: val
+        }
+    }
     pub fn get_u32(&self) -> u32 {
         self.value
     }
-
+    pub fn set_u32(&mut self, val: u32) { self.value = val }
     pub fn set_alpha(&mut self, a: u8) {
         self.value = (self.value & 0x00FFFFFF) | ((a as u32) << 24);
     }
@@ -67,18 +48,4 @@ impl Color {
     pub fn blue(&self) -> u8 {
         (self.value & 0xFF) as u8
     }
-}
-
-#[derive(Default)]
-pub struct Layout {
-    pub padding:            Padding,
-    pub margin:             Margin,
-    pub border:             Border,
-    pub height:             usize,
-    pub width:              usize,
-    pub y:                  usize,
-    pub x:                  usize,
-
-    pub background_color:   Color,
-    pub text_color:         Color
 }
