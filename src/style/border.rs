@@ -1,4 +1,4 @@
-use crate::layout::Color;
+use crate::style::Color;
 
 #[derive(Debug, Default, Hash, Clone, Copy)]
 pub struct Border {

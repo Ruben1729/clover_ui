@@ -4,8 +4,8 @@ use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
 use clover_ui::component::{compute_positions, compute_dimensions, traverse};
 use clover_ui::element::{Element, ElementBuilder};
 use clover_ui::context::Context;
-use clover_ui::layout::{Color, FlexDirection, LayoutBuilder};
-use clover_ui::layout::Display::Flex;
+use clover_ui::style::{Border, Color, FlexDirection, StyleBuilder, StyleProperty};
+use clover_ui::style::Display::Flex;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
@@ -37,10 +37,10 @@ fn main() {
 
     let mut context = Context::default();
 
-    let root =
-        ElementBuilder::default()
-        .with_layout(
-        LayoutBuilder::default()
+    let root = ElementBuilder::default()
+        .with_id("root".to_string())
+        .with_style(
+        StyleBuilder::default()
             .with_border_color(Color::new(255, 255, 255, 255))
             .with_border_width(5)
             .with_height(HEIGHT)
@@ -49,8 +49,9 @@ fn main() {
         ).build();
 
     let flex_parent = ElementBuilder::default()
-        .with_layout(
-            LayoutBuilder::default()
+        .with_id("flex_parent".to_string())
+        .with_style(
+            StyleBuilder::default()
                 .with_margin(10, 10, 10, 10)
                 .with_border_width(10)
                 .with_border_color(Color::new(255, 0, 0, 255))
@@ -62,8 +63,9 @@ fn main() {
         .build();
 
     let red_child = ElementBuilder::default()
-        .with_layout(
-            LayoutBuilder::default()
+        .with_id("red_child".to_string())
+        .with_style(
+            StyleBuilder::default()
                 .with_margin(10, 10, 10, 10)
                 .with_padding(10, 10, 10, 10)
                 .with_background_color(Color::new(255, 255, 0, 0))
@@ -71,8 +73,9 @@ fn main() {
         ).build();
 
     let green_child = ElementBuilder::default()
-        .with_layout(
-            LayoutBuilder::default()
+        .with_id("green_child".to_string())
+        .with_style(
+            StyleBuilder::default()
                 .with_margin(10, 10, 10, 10)
                 .with_padding(10, 10, 10, 10)
                 .with_background_color(Color::new(255, 0, 255, 0))
@@ -83,19 +86,25 @@ fn main() {
         ).build();
 
     let blue_child = ElementBuilder::default()
-        .with_layout(
-            LayoutBuilder::default()
+        .with_id("blue_child".to_string())
+        .with_style(
+            StyleBuilder::default()
                 .with_padding(10, 10, 10, 10)
                 .with_background_color(Color::new(255, 0, 0, 255))
                 .with_border_width(10)
                 .with_border_color(Color::new(0, 0, 0, 0))
                 .build()
-        ).with_layout_on_hover(Color::new(255, 255, 255, 255))
+        ).with_style_on_hover(
+        vec![
+            StyleProperty::Border(Border::new(10, Color::new(255, 255, 255 ,255)))
+        ]
+    )
         .build();
 
     let custom_child = ElementBuilder::default()
-        .with_layout(
-            LayoutBuilder::default()
+        .with_id("custom".to_string())
+        .with_style(
+            StyleBuilder::default()
                 .with_margin(10, 10, 10, 10)
                 .with_padding(10, 10, 10, 10)
                 .with_background_color(Color::new(255, 255, 0, 255))
@@ -134,7 +143,7 @@ fn main() {
         }
 
         traverse(&root, |elem| {
-            let layout = elem.layout();
+            let layout = elem.style();
 
             for dy in 0..layout.height() {
                 for dx in 0..layout.width() {

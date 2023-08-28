@@ -5,6 +5,8 @@ With this GUI library, the idea is that you can build your element tree (similar
 
 Additionally, I'd like to build the GUI library such that the UI looks good by default. I'm personally not a fan of the style ImGUI and eGUI have adopted. Once again, these should be extremely easy to swap should the user want to apply their own styles.
 
+## CURRENTLY IN A VERY NON-STABLE VERSION
+
 ## Future Work
 - [ ] Improve styles API to mimic CSS better (currently extremely annoying to do conditional styles)
 - [ ] Compute styles from classes and IDs

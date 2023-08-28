@@ -1,7 +1,7 @@
-use crate::layout::{Border, Color, Display, Layout, Spacing};
+use crate::style::{Border, Color, Display, Style, Spacing};
 
 #[derive(Debug, Default)]
-pub struct LayoutBuilder {
+pub struct StyleBuilder {
     padding:            Spacing,
     margin:             Spacing,
     border:             Border,
@@ -12,7 +12,7 @@ pub struct LayoutBuilder {
     color:              Color
 }
 
-impl LayoutBuilder {
+impl StyleBuilder {
     pub fn with_padding(mut self, top: usize, right: usize, bottom: usize, left: usize) -> Self {
         self.padding.set(top, right, bottom, left);
         self
@@ -50,8 +50,8 @@ impl LayoutBuilder {
         self.color.set_u32(color.get_u32());
         self
     }
-    pub fn build(self) -> Layout {
-        Layout {
+    pub fn build(self) -> Style {
+        Style {
             padding: self.padding,
             margin: self.margin,
             border: self.border,

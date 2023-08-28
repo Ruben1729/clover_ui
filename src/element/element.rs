@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use crate::events::Events;
-use crate::layout::{Color, Layout};
+use crate::style::{Color, ConditionalStyle, Style, StyleProperty};
 
 pub enum ElementType {
     Div,
@@ -26,8 +26,8 @@ pub struct Element {
     ty:                     ElementType,
     id:                     String,
     class:                  Vec<String>,
-    pub layout:             Layout,
-    conditional_layouts:    HashMap<ElementState, Color>,
+    pub style: Style,
+    conditional_styles:    HashMap<ElementState, ConditionalStyle>,
 
     parent:                 Option<Rc<RefCell<Element>>>,
     pub children:           Vec<Rc<RefCell<Element>>>,
@@ -36,13 +36,13 @@ pub struct Element {
 }
 
 impl Element {
-    pub fn new(id: String, class: Vec<String>, layout: Layout, cond: HashMap<ElementState, Color>) -> Self {
+    pub fn new(id: String, class: Vec<String>, layout: Style, conditional_styles: HashMap<ElementState, ConditionalStyle>) -> Self {
         Element {
             ty:         ElementType::Div,
             id,
             class,
-            layout,
-            conditional_layouts: cond,
+            style: layout,
+            conditional_styles,
 
             parent:     None,
             children:   Vec::new(),
@@ -56,17 +56,49 @@ impl Element {
         parent.borrow_mut().children.push(Rc::clone(child));
     }
 
-    pub fn layout(&self) -> Layout {
-        let mut layout = self.layout.clone();
+    pub fn style(&self) -> Style {
+        let mut style = self.style.clone();
 
-        // TODO: this is extremely inefficient
-        for state in self.state.iter() {
-            if let Some(color) = self.conditional_layouts.get(state) {
-                layout.border.set_color(*color);
+        for state in &self.state {
+            if let Some(styles) = self.conditional_styles.get(state) {
+                for curr_style in styles {
+                    match curr_style {
+                        StyleProperty::Padding(val) => {
+                            style.padding = val.clone();
+                        }
+                        StyleProperty::Margin(val) => {
+                            style.margin = val.clone();
+                        }
+                        StyleProperty::Border(val) => {
+                            style.border = val.clone();
+                        }
+                        StyleProperty::Height(val) => {
+                            style.height = val.clone();
+                        }
+                        StyleProperty::Width(val) => {
+                            style.width = val.clone();
+                        }
+                        StyleProperty::X(val) => {
+                            style.x = val.clone();
+                        }
+                        StyleProperty::Y(val) => {
+                            style.y = val.clone();
+                        }
+                        StyleProperty::Display(val) => {
+                            style.display = val.clone();
+                        }
+                        StyleProperty::BackgroundColor(val) => {
+                            style.background_color = val.clone();
+                        }
+                        StyleProperty::Color(val) => {
+                            style.color = val.clone();
+                        }
+                    }
+                }
             }
         }
 
-        layout
+        style
     }
 
     pub fn is_hovered(&self) -> bool {
@@ -82,8 +114,8 @@ impl Element {
             Events::MouseLeave => {}
             Events::MouseMove(move_event) => {
                 if let Some(position) = move_event {
-                    if position.0 > self.layout.x as f32 && position.0 < (self.layout.x + self.layout.width()) as f32 &&
-                       position.1 > self.layout.y as f32 && position.1 < (self.layout.y + self.layout.height()) as f32 {
+                    if position.0 > self.style.x as f32 && position.0 < (self.style.x + self.style.width()) as f32 &&
+                       position.1 > self.style.y as f32 && position.1 < (self.style.y + self.style.height()) as f32 {
                         self.state.insert(ElementState::Hovered);
                     } else {
                         self.state.remove(&ElementState::Hovered);

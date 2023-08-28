@@ -1,23 +1,23 @@
-use crate::layout::{Color, Display, Spacing, Border};
+use crate::style::{Color, Display, Spacing, Border};
 
-#[derive(Default)]
-pub struct ConditionalLayout {
-    pub padding:            Option<Spacing>,
-    pub margin:             Option<Spacing>,
-    pub border:             Option<Border>,
-    pub height:             Option<usize>,
-    pub width:              Option<usize>,
-    pub y:                  Option<usize>,
-    pub x:                  Option<usize>,
-
-    pub display:            Option<Display>,
-
-    pub background_color:   Option<Color>,
-    pub color:              Option<Color>
+#[derive(Debug, Hash, Clone, Copy)]
+pub enum StyleProperty {
+    Padding(Spacing),
+    Margin(Spacing),
+    Border(Border),
+    Height(usize),
+    Width(usize),
+    X(usize),
+    Y(usize),
+    Display(Display),
+    BackgroundColor(Color),
+    Color(Color),
 }
 
+pub type ConditionalStyle = Vec<StyleProperty>;
+
 #[derive(Default, Hash, Clone, Copy)]
-pub struct Layout {
+pub struct Style {
     pub padding:            Spacing,
     pub margin:             Spacing,
     pub border:             Border,
@@ -32,7 +32,7 @@ pub struct Layout {
     pub color:              Color
 }
 
-impl Layout {
+impl Style {
     pub fn content_x(&self) -> usize {
         self.x + self.margin.left + self.border.left + self.padding.left
     }
