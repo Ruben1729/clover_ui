@@ -1,6 +1,22 @@
 use crate::layout::{Color, Display, Spacing, Border};
 
 #[derive(Default)]
+pub struct ConditionalLayout {
+    pub padding:            Option<Spacing>,
+    pub margin:             Option<Spacing>,
+    pub border:             Option<Border>,
+    pub height:             Option<usize>,
+    pub width:              Option<usize>,
+    pub y:                  Option<usize>,
+    pub x:                  Option<usize>,
+
+    pub display:            Option<Display>,
+
+    pub background_color:   Option<Color>,
+    pub color:              Option<Color>
+}
+
+#[derive(Default, Hash, Clone, Copy)]
 pub struct Layout {
     pub padding:            Spacing,
     pub margin:             Spacing,

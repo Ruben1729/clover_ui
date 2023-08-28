@@ -1,13 +1,15 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
-use crate::element::Element;
-use crate::layout::Layout;
+use crate::element::{Element, ElementState};
+use crate::layout::{Color, Layout};
 
 #[derive(Default)]
 pub struct ElementBuilder {
     id:         String,
     class:      Vec<String>,
-    layout:     Layout
+    layout:     Layout,
+    conditional_layouts: HashMap<ElementState, Color>
 }
 
 impl ElementBuilder {
@@ -26,11 +28,17 @@ impl ElementBuilder {
         self
     }
 
+    pub fn with_layout_on_hover(mut self, color: Color) -> Self {
+        self.conditional_layouts.insert(ElementState::Hovered, color);
+        self
+    }
+
     pub fn build(self) -> Rc<RefCell<Element>>{
         Rc::new(RefCell::new(Element::new(
             self.id,
             self.class,
-            self.layout
+            self.layout,
+            self.conditional_layouts
         )))
     }
 }

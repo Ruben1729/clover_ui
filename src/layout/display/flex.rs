@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Hash, Clone, Copy)]
 pub enum FlexDirection {
     Row,
     RowReverse,

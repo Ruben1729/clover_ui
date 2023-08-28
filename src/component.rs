@@ -94,7 +94,6 @@ pub fn compute_positions(parent_ref: Rc<RefCell<Element>>, dx: usize, dy: usize)
     };
 
     for child in &parent.children {
-
         {
             match &parent.layout.display {
                 Display::Block() => {}

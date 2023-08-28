@@ -1,4 +1,4 @@
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Hash, Clone, Copy)]
 pub struct Spacing {
     pub top:    usize,
     pub right:  usize,

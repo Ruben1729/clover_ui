@@ -1,6 +1,6 @@
 use crate::layout::{FlexDirection, FlexProperties};
 
-#[derive(Debug)]
+#[derive(Debug, Hash, Clone, Copy)]
 pub enum Display {
     Block(),
     Flex { direction: FlexDirection },
