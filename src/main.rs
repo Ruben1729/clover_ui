@@ -4,7 +4,7 @@ use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
 use clover_ui::component::{compute_positions, compute_dimensions, traverse};
 use clover_ui::element::{Element, ElementBuilder};
 use clover_ui::context::Context;
-use clover_ui::style::{Border, Color, FlexDirection, StyleBuilder, StyleProperty};
+use clover_ui::style::{Border, Color, FlexDirection, Spacing, StyleBuilder, StyleProperty};
 use clover_ui::style::Display::Flex;
 
 const WIDTH: usize = 1280;
@@ -39,76 +39,74 @@ fn main() {
 
     let root = ElementBuilder::default()
         .with_id("root".to_string())
-        .with_style(
-        StyleBuilder::default()
-            .with_border_color(Color::new(255, 255, 255, 255))
-            .with_border_width(5)
-            .with_height(HEIGHT)
-            .with_width(WIDTH)
-            .build()
+        .with_styles(
+            vec![
+                StyleProperty::Border(Border::new(5, Color::new(255, 255, 255, 255))),
+                StyleProperty::Height(HEIGHT),
+                StyleProperty::Width(WIDTH)
+            ]
         ).build();
 
     let flex_parent = ElementBuilder::default()
         .with_id("flex_parent".to_string())
-        .with_style(
-            StyleBuilder::default()
-                .with_margin(10, 10, 10, 10)
-                .with_border_width(10)
-                .with_border_color(Color::new(255, 0, 0, 255))
-                .with_display(Flex {
-                    direction: FlexDirection::Col
+        .with_styles(
+            vec![
+                StyleProperty::Margin(Spacing::new(10)),
+                StyleProperty::Border(Border::new(10, Color::new(255, 0, 0, 255))),
+                StyleProperty::Display(Flex {
+                    direction: FlexDirection::Col,
                 })
-                .build()
+            ]
         )
         .build();
 
     let red_child = ElementBuilder::default()
         .with_id("red_child".to_string())
-        .with_style(
-            StyleBuilder::default()
-                .with_margin(10, 10, 10, 10)
-                .with_padding(10, 10, 10, 10)
-                .with_background_color(Color::new(255, 255, 0, 0))
-                .build()
+        .with_styles(
+            vec![
+                StyleProperty::Margin(Spacing::new(10)),
+                StyleProperty::Padding(Spacing::new(10)),
+                StyleProperty::BackgroundColor(Color::new(255, 255, 0, 0))
+            ]
         ).build();
 
     let green_child = ElementBuilder::default()
         .with_id("green_child".to_string())
-        .with_style(
-            StyleBuilder::default()
-                .with_margin(10, 10, 10, 10)
-                .with_padding(10, 10, 10, 10)
-                .with_background_color(Color::new(255, 0, 255, 0))
-                .with_display(Flex {
-                    direction: FlexDirection::Col
+        .with_styles(
+            vec![
+                StyleProperty::Margin(Spacing::new(10)),
+                StyleProperty::Padding(Spacing::new(10)),
+                StyleProperty::BackgroundColor(Color::new(255, 0, 255, 0)),
+                StyleProperty::Display(Flex {
+                    direction: FlexDirection::Row,
                 })
-                .build()
+            ]
         ).build();
 
     let blue_child = ElementBuilder::default()
         .with_id("blue_child".to_string())
-        .with_style(
-            StyleBuilder::default()
-                .with_padding(10, 10, 10, 10)
-                .with_background_color(Color::new(255, 0, 0, 255))
-                .with_border_width(10)
-                .with_border_color(Color::new(0, 0, 0, 0))
-                .build()
+        .with_styles(
+            vec![
+                StyleProperty::Padding(Spacing::new(10)),
+                StyleProperty::BackgroundColor(Color::new(255, 0, 0, 255)),
+                StyleProperty::Border(Border::new(10, Color::default()))
+            ]
         ).with_style_on_hover(
-        vec![
-            StyleProperty::Border(Border::new(10, Color::new(255, 255, 255 ,255)))
-        ]
-    )
+            vec![
+                StyleProperty::Border(Border::new(10, Color::new(255, 255, 255 ,255))),
+                StyleProperty::BackgroundColor(Color::new(100, 150, 150, 150))
+            ]
+        )
         .build();
 
     let custom_child = ElementBuilder::default()
         .with_id("custom".to_string())
-        .with_style(
-            StyleBuilder::default()
-                .with_margin(10, 10, 10, 10)
-                .with_padding(10, 10, 10, 10)
-                .with_background_color(Color::new(255, 255, 0, 255))
-                .build()
+        .with_styles(
+            vec![
+                StyleProperty::Margin(Spacing::new(10)),
+                StyleProperty::Padding(Spacing::new(10)),
+                StyleProperty::BackgroundColor(Color::new(255, 255, 0, 255))
+            ]
         ).build();
 
     Element::insert(&root, &flex_parent);
@@ -143,12 +141,12 @@ fn main() {
         }
 
         traverse(&root, |elem| {
-            let layout = elem.style();
+            let style = elem.style();
 
-            for dy in 0..layout.height() {
-                for dx in 0..layout.width() {
-                    let index = (layout.x + dx) + (layout.y + dy) * WIDTH;
-                    buffer[index] = layout.color_at_px(dx, dy);
+            for dy in 0..style.height() {
+                for dx in 0..style.width() {
+                    let index = (style.x + dx) + (style.y + dy) * WIDTH;
+                    buffer[index] = style.color_at_px(dx, dy);
                 }
             }
         });

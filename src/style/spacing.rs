@@ -7,6 +7,14 @@ pub struct Spacing {
 }
 
 impl Spacing {
+    pub fn new(width: usize) -> Self {
+        Spacing {
+            top: width,
+            right: width,
+            bottom: width,
+            left: width
+        }
+    }
     pub fn vertical(&self) -> usize {
         self.top + self.bottom
     }

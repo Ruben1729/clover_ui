@@ -1,4 +1,4 @@
-use crate::style::{Border, Color, Display, Style, Spacing};
+use crate::style::{Border, Color, Display, Style, Spacing, ConditionalStyle, StyleProperty};
 
 #[derive(Debug, Default)]
 pub struct StyleBuilder {
@@ -13,6 +13,46 @@ pub struct StyleBuilder {
 }
 
 impl StyleBuilder {
+    pub fn from(styles: ConditionalStyle) -> Style {
+        let mut style = Style::default();
+
+        for curr_style in styles {
+            match curr_style {
+                StyleProperty::Padding(val) => {
+                    style.padding = val.clone();
+                }
+                StyleProperty::Margin(val) => {
+                    style.margin = val.clone();
+                }
+                StyleProperty::Border(val) => {
+                    style.border = val.clone();
+                }
+                StyleProperty::Height(val) => {
+                    style.height = val.clone();
+                }
+                StyleProperty::Width(val) => {
+                    style.width = val.clone();
+                }
+                StyleProperty::X(val) => {
+                    style.x = val.clone();
+                }
+                StyleProperty::Y(val) => {
+                    style.y = val.clone();
+                }
+                StyleProperty::Display(val) => {
+                    style.display = val.clone();
+                }
+                StyleProperty::BackgroundColor(val) => {
+                    style.background_color = val.clone();
+                }
+                StyleProperty::Color(val) => {
+                    style.color = val.clone();
+                }
+            }
+        }
+
+        style
+    }
     pub fn with_padding(mut self, top: usize, right: usize, bottom: usize, left: usize) -> Self {
         self.padding.set(top, right, bottom, left);
         self

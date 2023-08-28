@@ -36,12 +36,12 @@ pub struct Element {
 }
 
 impl Element {
-    pub fn new(id: String, class: Vec<String>, layout: Style, conditional_styles: HashMap<ElementState, ConditionalStyle>) -> Self {
+    pub fn new(id: String, class: Vec<String>, style: Style, conditional_styles: HashMap<ElementState, ConditionalStyle>) -> Self {
         Element {
             ty:         ElementType::Div,
             id,
             class,
-            style: layout,
+            style: style,
             conditional_styles,
 
             parent:     None,

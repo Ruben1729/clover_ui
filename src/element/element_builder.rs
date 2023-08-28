@@ -2,13 +2,13 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::element::{Element, ElementState};
-use crate::style::{ConditionalStyle, Style};
+use crate::style::{ConditionalStyle, Style, StyleBuilder};
 
 #[derive(Default)]
 pub struct ElementBuilder {
-    id:         String,
-    class:      Vec<String>,
-    style: Style,
+    id:                 String,
+    class:              Vec<String>,
+    styles:             ConditionalStyle,
     conditional_styles: HashMap<ElementState, ConditionalStyle>
 }
 
@@ -23,8 +23,8 @@ impl ElementBuilder {
         self
     }
 
-    pub fn with_style(mut self, style: Style) -> Self {
-        self.style = style;
+    pub fn with_styles(mut self, styles: ConditionalStyle) -> Self {
+        self.styles = styles;
         self
     }
 
@@ -37,7 +37,7 @@ impl ElementBuilder {
         Rc::new(RefCell::new(Element::new(
             self.id,
             self.class,
-            self.style,
+            StyleBuilder::from(self.styles),
             self.conditional_styles
         )))
     }
