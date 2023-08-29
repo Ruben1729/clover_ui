@@ -1,6 +1,7 @@
+use rusttype::Font;
 use crate::style::{Color, Display, Spacing, Border};
 
-#[derive(Debug, Hash, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum StyleProperty {
     Padding(Spacing),
     Margin(Spacing),
@@ -12,11 +13,13 @@ pub enum StyleProperty {
     Display(Display),
     BackgroundColor(Color),
     Color(Color),
+    Font(Option<String>),
+    FontSize(f32)
 }
 
 pub type ConditionalStyle = Vec<StyleProperty>;
 
-#[derive(Default, Hash, Clone, Copy)]
+#[derive(Default, Clone)]
 pub struct Style {
     pub padding:            Spacing,
     pub margin:             Spacing,
@@ -29,7 +32,10 @@ pub struct Style {
     pub display:            Display,
 
     pub background_color:   Color,
-    pub color:              Color
+    pub color:              Color,
+
+    pub font:               Option<String>,
+    pub font_size:          f32
 }
 
 impl Style {
@@ -43,31 +49,31 @@ impl Style {
 
     pub fn width(&self) -> usize {
         self.margin.horizontal() +
-            self.padding.horizontal() +
             self.border.horizontal() +
+            self.padding.horizontal() +
             self.width
     }
 
     pub fn height(&self) -> usize {
         self.margin.vertical() +
-            self.padding.vertical() +
             self.border.vertical() +
+            self.padding.vertical() +
             self.height
     }
 
-    pub fn color_at_px(&self, dx: usize, dy: usize) -> u32 {
-        if dx < self.margin.right ||
-            dy < self.margin.top ||
-            dx > self.padding.horizontal()  + self.border.horizontal()  + self.margin.right + self.width ||
-            dy > self.padding.vertical()    + self.border.vertical()    + self.margin.top   + self.height {
-            Color::default().get_u32()
-        } else if dx < self.border.right + self.margin.right ||
-            dy < self.border.top + self.margin.top ||
-            dx > self.padding.horizontal() + self.border.right + self.margin.right + self.width ||
-            dy > self.padding.vertical() + self.border.top + self.margin.top + self.height {
-            self.border.color().0
+    pub fn color_at_px(&self, dx: usize, dy: usize) -> Option<u32> {
+        return if dx > self.margin.left + self.border.left &&
+            dx < self.margin.left + self.border.left + self.padding.left + self.width + self.padding.right &&
+            dy > self.margin.top + self.border.top &&
+            dy < self.margin.top + self.border.top + self.padding.top + self.height + self.padding.bottom {
+            Some(self.background_color.get_u32())
+        } else if dx > self.margin.left &&
+            dx < self.width() - self.margin.right &&
+            dy > self.margin.top &&
+            dy < self.height() - self.margin.bottom {
+            Some(self.border.color().0)
         } else {
-            self.background_color.get_u32()
+            None
         }
     }
 }

@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::element::Element;
-use crate::style::{Display, FlexDirection};
+use rusttype::{point, Scale};
+use crate::element::{Element, ElementType};
+use crate::style::{Display, FlexDirection, FontManager};
 
 pub fn traverse<F>(root: &Rc<RefCell<Element>>, mut action: F)
     where
@@ -24,6 +25,43 @@ pub fn compute_dimensions(parent_ref: Rc<RefCell<Element>>) {
     let mut parent = parent_ref.borrow_mut();
     for child in &parent.children {
         compute_dimensions(child.clone());
+    }
+
+    let mut text_width = 0;
+    let mut text_height = 0;
+
+    match parent.ty() {
+        ElementType::Div => {}
+        ElementType::Label {
+            value
+        } => {
+            let manager = FontManager::get();
+            let font = manager.get_font(&parent.style.font).expect("Unable to load font");
+
+            let scale = Scale::uniform(parent.style.font_size);
+            let v_metrics = font.v_metrics(scale);
+
+            let glyphs: Vec<_> = font
+                .layout(value, scale, point(0.0, 0.0 + v_metrics.ascent))
+                .collect();
+
+            // work out the layout size
+            text_height = (v_metrics.ascent - v_metrics.descent).ceil() as usize;
+            text_width = {
+                let min_x = glyphs
+                    .first()
+                    .map(|g| g.pixel_bounding_box().unwrap().min.x)
+                    .unwrap();
+                let max_x = glyphs
+                    .last()
+                    .map(|g| g.pixel_bounding_box().unwrap().max.x)
+                    .unwrap();
+                (max_x - min_x) as usize
+            };
+        }
+        ElementType::Text { .. } => {}
+        ElementType::CheckBox { .. } => {}
+        ElementType::Button { .. } => {}
     }
 
     let (mut new_width, mut new_height) = match &parent.style.display {
@@ -56,6 +94,9 @@ pub fn compute_dimensions(parent_ref: Rc<RefCell<Element>>) {
             }
         }
     };
+
+    new_width += text_width;
+    new_height += text_height;
 
     // Calculate width
     parent.style.width = new_width;

@@ -1,4 +1,4 @@
-use crate::style::{FlexDirection, FlexProperties};
+use crate::style::{FlexDirection};
 
 #[derive(Debug, Hash, Clone, Copy)]
 pub enum Display {

@@ -9,7 +9,7 @@ pub struct StyleBuilder {
     width:              usize,
     display:            Display,
     background_color:   Color,
-    color:              Color
+    color:              Color,
 }
 
 impl StyleBuilder {
@@ -47,6 +47,12 @@ impl StyleBuilder {
                 }
                 StyleProperty::Color(val) => {
                     style.color = val.clone();
+                }
+                StyleProperty::Font(val) => {
+                    style.font = val.clone();
+                },
+                StyleProperty::FontSize(val) => {
+                    style.font_size = val.clone();
                 }
             }
         }
@@ -92,16 +98,18 @@ impl StyleBuilder {
     }
     pub fn build(self) -> Style {
         Style {
-            padding: self.padding,
-            margin: self.margin,
-            border: self.border,
-            height: self.height,
-            width: self.width,
-            x: 0,
-            y: 0,
-            display: self.display,
-            background_color: self.background_color,
-            color: self.color,
+            padding:            self.padding,
+            margin:             self.margin,
+            border:             self.border,
+            height:             self.height,
+            width:              self.width,
+            x:                  0,
+            y:                  0,
+            display:            self.display,
+            background_color:   self.background_color,
+            color:              self.color,
+            font:               Default::default(),
+            font_size:          12.4
         }
     }
 }

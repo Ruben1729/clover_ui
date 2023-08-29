@@ -1,11 +1,12 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::element::{Element, ElementState};
-use crate::style::{ConditionalStyle, Style, StyleBuilder};
+use crate::element::{Element, ElementState, ElementType};
+use crate::style::{ConditionalStyle, StyleBuilder};
 
 #[derive(Default)]
 pub struct ElementBuilder {
+    ty:                 ElementType,
     id:                 String,
     class:              Vec<String>,
     styles:             ConditionalStyle,
@@ -13,6 +14,15 @@ pub struct ElementBuilder {
 }
 
 impl ElementBuilder {
+    pub fn new(ty: ElementType) -> Self {
+        ElementBuilder {
+            ty,
+            id: Default::default(),
+            class: Default::default(),
+            styles: Default::default(),
+            conditional_styles: Default::default()
+        }
+    }
     pub fn with_id(mut self, id: String) -> Self {
         self.id = id;
         self
@@ -35,6 +45,7 @@ impl ElementBuilder {
 
     pub fn build(self) -> Rc<RefCell<Element>>{
         Rc::new(RefCell::new(Element::new(
+            self.ty,
             self.id,
             self.class,
             StyleBuilder::from(self.styles),
