@@ -1,12 +1,12 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use rusttype::{point, Scale};
 use crate::element::{Element, ElementType};
 use crate::style::{Display, FlexDirection, FontManager};
+use rusttype::{point, Scale};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub fn traverse<F>(root: &Rc<RefCell<Element>>, mut action: F)
-    where
-        F: FnMut(&Element),
+where
+    F: FnMut(&Element),
 {
     let mut stack = Vec::new();
     stack.push(Rc::clone(root));
@@ -32,11 +32,11 @@ pub fn compute_dimensions(parent_ref: Rc<RefCell<Element>>) {
 
     match parent.ty() {
         ElementType::Div => {}
-        ElementType::Label {
-            value
-        } => {
+        ElementType::Label { value } => {
             let manager = FontManager::get();
-            let font = manager.get_font(&parent.style.font).expect("Unable to load font");
+            let font = manager
+                .get_font(&parent.style.font)
+                .expect("Unable to load font");
 
             let scale = Scale::uniform(parent.style.font_size);
             let v_metrics = font.v_metrics(scale);
@@ -65,34 +65,51 @@ pub fn compute_dimensions(parent_ref: Rc<RefCell<Element>>) {
     }
 
     let (mut new_width, mut new_height) = match &parent.style.display {
-        Display::Block() => {
-            (parent.children.iter()
-                 .map(|child| child.borrow().style.width())
-                 .max().unwrap_or_default(),
-             parent.children.iter()
-                 .map(|child| child.borrow().style.height())
-                 .sum())
-        }
-        Display::Flex{ direction } => {
-            match direction {
-                FlexDirection::Row | FlexDirection::RowReverse => {
-                    (parent.children.iter()
-                         .map(|child| child.borrow().style.width())
-                         .sum(),
-                     parent.children.iter()
-                         .map(|child| child.borrow().style.height())
-                         .max().unwrap_or_default())
-                }
-                FlexDirection::Col | FlexDirection::ColReverse => {
-                    (parent.children.iter()
-                         .map(|child| child.borrow().style.width())
-                         .max().unwrap_or_default(),
-                     parent.children.iter()
-                         .map(|child| child.borrow().style.height())
-                         .sum())
-                }
-            }
-        }
+        Display::Block() => (
+            parent
+                .children
+                .iter()
+                .map(|child| child.borrow().style.width())
+                .max()
+                .unwrap_or_default(),
+            parent
+                .children
+                .iter()
+                .map(|child| child.borrow().style.height())
+                .sum(),
+        ),
+        Display::Flex {
+            direction,
+            align_content,
+            align_items,
+        } => match direction {
+            FlexDirection::Row | FlexDirection::RowReverse => (
+                parent
+                    .children
+                    .iter()
+                    .map(|child| child.borrow().style.width())
+                    .sum(),
+                parent
+                    .children
+                    .iter()
+                    .map(|child| child.borrow().style.height())
+                    .max()
+                    .unwrap_or_default(),
+            ),
+            FlexDirection::Col | FlexDirection::ColReverse => (
+                parent
+                    .children
+                    .iter()
+                    .map(|child| child.borrow().style.width())
+                    .max()
+                    .unwrap_or_default(),
+                parent
+                    .children
+                    .iter()
+                    .map(|child| child.borrow().style.height())
+                    .sum(),
+            ),
+        },
     };
 
     new_width += text_width;
@@ -116,39 +133,43 @@ pub fn compute_positions(parent_ref: Rc<RefCell<Element>>, dx: usize, dy: usize)
     let parent = parent_ref.borrow();
 
     let (mut new_dx, mut new_dy) = match &parent.style.display {
-        Display::Block() => {
-            (parent.style.content_x(), parent.style.content_y())
-        }
-        Display::Flex{ direction } => {
-            match direction {
-                FlexDirection::Row | FlexDirection::Col => {
-                    (parent.style.content_x(), parent.style.content_y())
-                }
-                FlexDirection::RowReverse => {
-                    (parent.style.content_x() + parent.style.width, parent.style.content_y())
-                }
-                FlexDirection::ColReverse => {
-                    (parent.style.content_x(), parent.style.content_y() + parent.style.height)
-                }
+        Display::Block() => (parent.style.content_x(), parent.style.content_y()),
+        Display::Flex {
+            direction,
+            align_content,
+            align_items,
+        } => match direction {
+            FlexDirection::Row | FlexDirection::Col => {
+                (parent.style.content_x(), parent.style.content_y())
             }
-        }
+            FlexDirection::RowReverse => (
+                parent.style.content_x() + parent.style.width,
+                parent.style.content_y(),
+            ),
+            FlexDirection::ColReverse => (
+                parent.style.content_x(),
+                parent.style.content_y() + parent.style.height,
+            ),
+        },
     };
 
     for child in &parent.children {
         {
             match &parent.style.display {
                 Display::Block() => {}
-                Display::Flex{direction} => {
-                    match direction {
-                        FlexDirection::Row | FlexDirection::Col => { }
-                        FlexDirection::RowReverse => {
-                            new_dx -= child.borrow().style.width();
-                        }
-                        FlexDirection::ColReverse => {
-                            new_dy -= child.borrow().style.height();
-                        }
+                Display::Flex {
+                    direction,
+                    align_content,
+                    align_items,
+                } => match direction {
+                    FlexDirection::Row | FlexDirection::Col => {}
+                    FlexDirection::RowReverse => {
+                        new_dx -= child.borrow().style.width();
                     }
-                }
+                    FlexDirection::ColReverse => {
+                        new_dy -= child.borrow().style.height();
+                    }
+                },
             }
         }
 
@@ -159,17 +180,19 @@ pub fn compute_positions(parent_ref: Rc<RefCell<Element>>, dx: usize, dy: usize)
                 Display::Block() => {
                     new_dy += child.borrow().style.height();
                 }
-                Display::Flex { direction } => {
-                    match direction {
-                        FlexDirection::Row => {
-                            new_dx += child.borrow().style.width();
-                        }
-                        FlexDirection::RowReverse | FlexDirection::ColReverse=> { }
-                        FlexDirection::Col => {
-                            new_dy += child.borrow().style.height();
-                        }
+                Display::Flex {
+                    direction,
+                    align_content,
+                    align_items,
+                } => match direction {
+                    FlexDirection::Row => {
+                        new_dx += child.borrow().style.width();
                     }
-                }
+                    FlexDirection::RowReverse | FlexDirection::ColReverse => {}
+                    FlexDirection::Col => {
+                        new_dy += child.borrow().style.height();
+                    }
+                },
             }
         }
     }

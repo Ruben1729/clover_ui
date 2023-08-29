@@ -1,5 +1,5 @@
+use crate::style::{Border, Color, Display, Spacing};
 use rusttype::Font;
-use crate::style::{Color, Display, Spacing, Border};
 
 #[derive(Debug, Clone)]
 pub enum StyleProperty {
@@ -14,28 +14,28 @@ pub enum StyleProperty {
     BackgroundColor(Color),
     Color(Color),
     Font(Option<String>),
-    FontSize(f32)
+    FontSize(f32),
 }
 
 pub type ConditionalStyle = Vec<StyleProperty>;
 
 #[derive(Default, Clone)]
 pub struct Style {
-    pub padding:            Spacing,
-    pub margin:             Spacing,
-    pub border:             Border,
-    pub height:             usize,
-    pub width:              usize,
-    pub y:                  usize,
-    pub x:                  usize,
+    pub padding: Spacing,
+    pub margin: Spacing,
+    pub border: Border,
+    pub height: usize,
+    pub width: usize,
+    pub y: usize,
+    pub x: usize,
 
-    pub display:            Display,
+    pub display: Display,
 
-    pub background_color:   Color,
-    pub color:              Color,
+    pub background_color: Color,
+    pub color: Color,
 
-    pub font:               Option<String>,
-    pub font_size:          f32
+    pub font: Option<String>,
+    pub font_size: f32,
 }
 
 impl Style {
@@ -48,32 +48,38 @@ impl Style {
     }
 
     pub fn width(&self) -> usize {
-        self.margin.horizontal() +
-            self.border.horizontal() +
-            self.padding.horizontal() +
-            self.width
+        self.margin.horizontal() + self.border.horizontal() + self.padding.horizontal() + self.width
     }
 
     pub fn height(&self) -> usize {
-        self.margin.vertical() +
-            self.border.vertical() +
-            self.padding.vertical() +
-            self.height
+        self.margin.vertical() + self.border.vertical() + self.padding.vertical() + self.height
     }
 
     pub fn color_at_px(&self, dx: usize, dy: usize) -> Option<u32> {
-        return if dx > self.margin.left + self.border.left &&
-            dx < self.margin.left + self.border.left + self.padding.left + self.width + self.padding.right &&
-            dy > self.margin.top + self.border.top &&
-            dy < self.margin.top + self.border.top + self.padding.top + self.height + self.padding.bottom {
+        return if dx > self.margin.left + self.border.left
+            && dx
+                < self.margin.left
+                    + self.border.left
+                    + self.padding.left
+                    + self.width
+                    + self.padding.right
+            && dy > self.margin.top + self.border.top
+            && dy
+                < self.margin.top
+                    + self.border.top
+                    + self.padding.top
+                    + self.height
+                    + self.padding.bottom
+        {
             Some(self.background_color.get_u32())
-        } else if dx > self.margin.left &&
-            dx < self.width() - self.margin.right &&
-            dy > self.margin.top &&
-            dy < self.height() - self.margin.bottom {
+        } else if dx > self.margin.left
+            && dx < self.width() - self.margin.right
+            && dy > self.margin.top
+            && dy < self.height() - self.margin.bottom
+        {
             Some(self.border.color().0)
         } else {
             None
-        }
+        };
     }
 }

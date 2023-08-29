@@ -1,16 +1,16 @@
+use crate::element::{Element, ElementState, ElementType};
+use crate::style::{ConditionalStyle, StyleBuilder};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::element::{Element, ElementState, ElementType};
-use crate::style::{ConditionalStyle, StyleBuilder};
 
 #[derive(Default)]
 pub struct ElementBuilder {
-    ty:                 ElementType,
-    id:                 String,
-    class:              Vec<String>,
-    styles:             ConditionalStyle,
-    conditional_styles: HashMap<ElementState, ConditionalStyle>
+    ty: ElementType,
+    id: String,
+    class: Vec<String>,
+    styles: ConditionalStyle,
+    conditional_styles: HashMap<ElementState, ConditionalStyle>,
 }
 
 impl ElementBuilder {
@@ -20,7 +20,7 @@ impl ElementBuilder {
             id: Default::default(),
             class: Default::default(),
             styles: Default::default(),
-            conditional_styles: Default::default()
+            conditional_styles: Default::default(),
         }
     }
     pub fn with_id(mut self, id: String) -> Self {
@@ -39,17 +39,18 @@ impl ElementBuilder {
     }
 
     pub fn with_style_on_hover(mut self, styles: ConditionalStyle) -> Self {
-        self.conditional_styles.insert(ElementState::Hovered, styles);
+        self.conditional_styles
+            .insert(ElementState::Hovered, styles);
         self
     }
 
-    pub fn build(self) -> Rc<RefCell<Element>>{
+    pub fn build(self) -> Rc<RefCell<Element>> {
         Rc::new(RefCell::new(Element::new(
             self.ty,
             self.id,
             self.class,
             StyleBuilder::from(self.styles),
-            self.conditional_styles
+            self.conditional_styles,
         )))
     }
 }

@@ -7,7 +7,7 @@ pub use self::mouse::*;
 #[derive(Default)]
 pub struct State {
     pub(crate) keys: KeyState,
-    pub(crate) mouse: MouseState
+    pub(crate) mouse: MouseState,
 }
 
 impl State {

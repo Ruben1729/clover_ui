@@ -1,18 +1,26 @@
 #[derive(Debug, Default, Hash, Clone, Copy)]
 pub struct Spacing {
-    pub top:    usize,
-    pub right:  usize,
+    pub top: usize,
+    pub right: usize,
     pub bottom: usize,
-    pub left:   usize
+    pub left: usize,
 }
 
 impl Spacing {
-    pub fn new(width: usize) -> Self {
+    pub fn uniform(width: usize) -> Self {
         Spacing {
             top: width,
             right: width,
             bottom: width,
-            left: width
+            left: width,
+        }
+    }
+    pub fn new(top: usize, right: usize, bottom: usize, left: usize) -> Self {
+        Spacing {
+            top,
+            right,
+            bottom,
+            left,
         }
     }
     pub fn vertical(&self) -> usize {
@@ -24,19 +32,19 @@ impl Spacing {
     }
 
     pub fn set_horizontal(&mut self, val: usize) {
-        self.right =    val;
-        self.left =     val;
+        self.right = val;
+        self.left = val;
     }
 
     pub fn set_vertical(&mut self, val: usize) {
-        self.top =      val;
-        self.bottom =   val;
+        self.top = val;
+        self.bottom = val;
     }
 
     pub fn set(&mut self, top: usize, right: usize, bottom: usize, left: usize) {
-        self.top =      top;
-        self.right =    right;
-        self.bottom =   bottom;
-        self.left =     left;
+        self.top = top;
+        self.right = right;
+        self.bottom = bottom;
+        self.left = left;
     }
 }

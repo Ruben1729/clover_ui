@@ -1,4 +1,3 @@
-
 #[derive(Default)]
 pub struct MouseState {
     pub pressed: Vec<MouseButton>,

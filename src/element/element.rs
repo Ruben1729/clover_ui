@@ -1,26 +1,18 @@
+use crate::events::Events;
+use crate::paint::Primitive::Rectangle;
+use crate::paint::{Drawable, Primitive};
+use crate::style::{ConditionalStyle, Style, StyleProperty};
+use rusttype::Scale;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use rusttype::{Scale};
-use crate::events::Events;
-use crate::paint::{Drawable, Primitive};
-use crate::paint::Primitive::Rectangle;
-use crate::style::{ConditionalStyle, Style, StyleProperty};
 
 pub enum ElementType {
     Div,
-    Label {
-        value: String
-    },
-    Text {
-        value: String,
-    },
-    CheckBox {
-        value: bool,
-    },
-    Button {
-        value: bool,
-    },
+    Label { value: String },
+    Text { value: String },
+    CheckBox { value: bool },
+    Button { value: bool },
 }
 
 impl Default for ElementType {
@@ -31,24 +23,30 @@ impl Default for ElementType {
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum ElementState {
-    Hovered
+    Hovered,
 }
 
 pub struct Element {
-    ty:                     ElementType,
-    id:                     String,
-    class:                  Vec<String>,
-    pub style:              Style,
-    conditional_styles:     HashMap<ElementState, ConditionalStyle>,
+    ty: ElementType,
+    id: String,
+    class: Vec<String>,
+    pub style: Style,
+    conditional_styles: HashMap<ElementState, ConditionalStyle>,
 
-    parent:                 Option<Rc<RefCell<Element>>>,
-    pub children:           Vec<Rc<RefCell<Element>>>,
+    parent: Option<Rc<RefCell<Element>>>,
+    pub children: Vec<Rc<RefCell<Element>>>,
 
-    pub state:              HashSet<ElementState>
+    pub state: HashSet<ElementState>,
 }
 
 impl Element {
-    pub fn new(ty: ElementType, id: String, class: Vec<String>, style: Style, conditional_styles: HashMap<ElementState, ConditionalStyle>) -> Self {
+    pub fn new(
+        ty: ElementType,
+        id: String,
+        class: Vec<String>,
+        style: Style,
+        conditional_styles: HashMap<ElementState, ConditionalStyle>,
+    ) -> Self {
         Element {
             ty,
             id,
@@ -56,10 +54,10 @@ impl Element {
             style,
             conditional_styles,
 
-            parent:     None,
-            children:   Vec::new(),
+            parent: None,
+            children: Vec::new(),
 
-            state:      HashSet::new()
+            state: HashSet::new(),
         }
     }
 
@@ -109,12 +107,8 @@ impl Element {
                         StyleProperty::Color(val) => {
                             style.color = val.clone();
                         }
-                        StyleProperty::Font(val) => {
-                            style.font = val.clone()
-                        },
-                        StyleProperty::FontSize(val) => {
-                            style.font_size = val.clone()
-                        }
+                        StyleProperty::Font(val) => style.font = val.clone(),
+                        StyleProperty::FontSize(val) => style.font_size = val.clone(),
                     }
                 }
             }
@@ -136,8 +130,11 @@ impl Element {
             Events::MouseLeave => {}
             Events::MouseMove(move_event) => {
                 if let Some(position) = move_event {
-                    if position.0 > self.style.x as f32 && position.0 < (self.style.x + self.style.width()) as f32 &&
-                       position.1 > self.style.y as f32 && position.1 < (self.style.y + self.style.height()) as f32 {
+                    if position.0 > self.style.x as f32
+                        && position.0 < (self.style.x + self.style.width()) as f32
+                        && position.1 > self.style.y as f32
+                        && position.1 < (self.style.y + self.style.height()) as f32
+                    {
                         self.state.insert(ElementState::Hovered);
                     } else {
                         self.state.remove(&ElementState::Hovered);
@@ -161,21 +158,15 @@ impl Drawable for Element {
         primitives.push(Rectangle {
             x: (style.x + style.margin.left) as f32,
             y: (style.y + style.margin.top) as f32,
-            width: (style.border.horizontal() +
-                style.padding.horizontal() +
-                style.width) as f32,
-            height: (style.border.vertical() +
-                style.padding.vertical() +
-                style.height) as f32,
+            width: (style.border.horizontal() + style.padding.horizontal() + style.width) as f32,
+            height: (style.border.vertical() + style.padding.vertical() + style.height) as f32,
             color: style.border.color().0,
         });
         primitives.push(Rectangle {
             x: (style.x + style.margin.left + style.border.left) as f32,
             y: (style.y + style.margin.top + style.border.top) as f32,
-            width: (style.padding.horizontal() +
-                style.width) as f32,
-            height: (style.padding.vertical() +
-                style.height) as f32,
+            width: (style.padding.horizontal() + style.width) as f32,
+            height: (style.padding.vertical() + style.height) as f32,
             color: style.background_color.get_u32(),
         });
         primitives.push(Rectangle {
@@ -194,7 +185,7 @@ impl Drawable for Element {
                     y: self.style.content_y() as f32,
                     scale: Scale {
                         x: self.style.font_size,
-                        y: self.style.font_size
+                        y: self.style.font_size,
                     },
                     content: value.clone(),
                     color: self.style.color.get_u32(),

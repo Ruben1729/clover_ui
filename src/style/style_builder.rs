@@ -1,15 +1,15 @@
-use crate::style::{Border, Color, Display, Style, Spacing, ConditionalStyle, StyleProperty};
+use crate::style::{Border, Color, ConditionalStyle, Display, Spacing, Style, StyleProperty};
 
 #[derive(Debug, Default)]
 pub struct StyleBuilder {
-    padding:            Spacing,
-    margin:             Spacing,
-    border:             Border,
-    height:             usize,
-    width:              usize,
-    display:            Display,
-    background_color:   Color,
-    color:              Color,
+    padding: Spacing,
+    margin: Spacing,
+    border: Border,
+    height: usize,
+    width: usize,
+    display: Display,
+    background_color: Color,
+    color: Color,
 }
 
 impl StyleBuilder {
@@ -50,7 +50,7 @@ impl StyleBuilder {
                 }
                 StyleProperty::Font(val) => {
                     style.font = val.clone();
-                },
+                }
                 StyleProperty::FontSize(val) => {
                     style.font_size = val.clone();
                 }
@@ -98,18 +98,18 @@ impl StyleBuilder {
     }
     pub fn build(self) -> Style {
         Style {
-            padding:            self.padding,
-            margin:             self.margin,
-            border:             self.border,
-            height:             self.height,
-            width:              self.width,
-            x:                  0,
-            y:                  0,
-            display:            self.display,
-            background_color:   self.background_color,
-            color:              self.color,
-            font:               Default::default(),
-            font_size:          12.4
+            padding: self.padding,
+            margin: self.margin,
+            border: self.border,
+            height: self.height,
+            width: self.width,
+            x: 0,
+            y: 0,
+            display: self.display,
+            background_color: self.background_color,
+            color: self.color,
+            font: Default::default(),
+            font_size: 12.4,
         }
     }
 }

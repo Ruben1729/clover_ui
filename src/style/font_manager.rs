@@ -1,15 +1,15 @@
+use lazy_static::lazy_static;
+use rusttype::Font;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use lazy_static::lazy_static;
-use rusttype::Font;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Default)]
 pub struct FontManager {
     db: HashMap<&'static str, Font<'static>>,
-    default: Option<Font<'static>>
+    default: Option<Font<'static>>,
 }
 
 lazy_static! {
@@ -24,7 +24,11 @@ impl FontManager {
     pub fn get_mut() -> RwLockWriteGuard<'static, FontManager> {
         INSTANCE.write().unwrap()
     }
-    pub fn load(&mut self, name_opt: Option<&'static str>, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn load(
+        &mut self,
+        name_opt: Option<&'static str>,
+        path: &Path,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut buffer = Vec::new();
         let mut file = File::open(path)?;
         file.read_to_end(&mut buffer)?;

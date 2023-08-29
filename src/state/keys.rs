@@ -1,4 +1,3 @@
-
 #[derive(Default)]
 pub struct KeyState {
     pub pressed: Vec<Key>,

@@ -13,5 +13,5 @@ pub enum Events {
 
     Click(MouseButton),
     MouseDown(MouseButton),
-    MouseUp(MouseButton)
+    MouseUp(MouseButton),
 }

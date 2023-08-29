@@ -1,6 +1,6 @@
-use rusttype::{Font, point};
 use crate::paint::Primitive;
 use crate::style::Color;
+use rusttype::{point, Font, Scale};
 
 // Define a trait for the drawing backend
 pub trait DrawingBackend {
@@ -23,7 +23,7 @@ impl<'a> Painter<'a> {
         Painter {
             draw_calls: Vec::new(),
             backend,
-            font
+            font,
         }
     }
 
@@ -37,30 +37,27 @@ impl<'a> Painter<'a> {
                     x,
                     y,
                     radius,
-                    color
-                } => {
-                    self.backend.draw_circle(*x, *y, *radius, *color)
-                }
+                    color,
+                } => self.backend.draw_circle(*x, *y, *radius, *color),
                 Primitive::Rectangle {
                     x,
                     y,
                     width,
                     height,
-                    color
-                } => {
-                    self.backend.draw_rect(*x, *y, *width, *height, *color)
-                }
+                    color,
+                } => self.backend.draw_rect(*x, *y, *width, *height, *color),
                 Primitive::Text {
                     x,
                     y,
                     scale,
                     content,
-                    color
+                    color,
                 } => {
                     let v_metrics = self.font.v_metrics(*scale);
 
                     // layout the glyphs in a line with 20 pixels padding
-                    let glyphs: Vec<_> = self.font
+                    let glyphs: Vec<_> = self
+                        .font
                         .layout(content, *scale, point(*x, *y + v_metrics.ascent))
                         .collect();
 
@@ -71,11 +68,15 @@ impl<'a> Painter<'a> {
                             glyph.draw(|x_, y_, v| {
                                 let new_x = x_ + bounding_box.min.x as u32;
                                 let new_y = y_ + bounding_box.min.y as u32;
-                                self.backend.draw_pixel_with_blending(new_x as f32, new_y as f32, *color, v);
+                                self.backend.draw_pixel_with_blending(
+                                    new_x as f32,
+                                    new_y as f32,
+                                    *color,
+                                    v,
+                                );
                             });
                         }
                     }
-
                 }
             }
         }

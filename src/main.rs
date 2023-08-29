@@ -1,13 +1,15 @@
 extern crate minifb;
 
-use std::path::Path;
-use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
-use clover_ui::component::{compute_positions, compute_dimensions, traverse};
-use clover_ui::element::{Element, ElementBuilder, ElementType};
+use clover_ui::component::{compute_dimensions, compute_positions, traverse};
 use clover_ui::context::Context;
+use clover_ui::element::{Element, ElementBuilder, ElementType};
 use clover_ui::paint::{Drawable, DrawingBackend, Painter};
-use clover_ui::style::{Border, Color, FlexDirection, FontManager, Spacing, StyleProperty};
 use clover_ui::style::Display::Flex;
+use clover_ui::style::{
+    AlignContent, AlignItems, Border, Color, FlexDirection, FontManager, Spacing, StyleProperty,
+};
+use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
+use std::path::Path;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
@@ -57,25 +59,28 @@ impl DrawingBackend for MiniFbBackend {
         let y = y as usize;
 
         if x < WIDTH && y < HEIGHT {
-            let pixel = self.buffer.get_mut((x as usize) + (y as usize) * WIDTH).unwrap();
+            let pixel = self
+                .buffer
+                .get_mut((x as usize) + (y as usize) * WIDTH)
+                .unwrap();
 
             // Separate the channels of the existing color in the buffer
             let alpha_old = (*pixel >> 24) & 0xFF;
-            let red_old   = (*pixel >> 16) & 0xFF;
-            let green_old = (*pixel >> 8)  & 0xFF;
-            let blue_old  = (*pixel)       & 0xFF;
+            let red_old = (*pixel >> 16) & 0xFF;
+            let green_old = (*pixel >> 8) & 0xFF;
+            let blue_old = (*pixel) & 0xFF;
 
             // Separate the channels of the new color you want to blend
             let alpha_new = ((color >> 24) & 0xFF) as f32 * v;
-            let red_new   = ((color >> 16) & 0xFF) as f32 * v;
-            let green_new = ((color >> 8)  & 0xFF) as f32 * v;
-            let blue_new  = ((color)       & 0xFF) as f32 * v;
+            let red_new = ((color >> 16) & 0xFF) as f32 * v;
+            let green_new = ((color >> 8) & 0xFF) as f32 * v;
+            let blue_new = ((color) & 0xFF) as f32 * v;
 
             // Perform alpha blending for each channel
             let alpha = (alpha_old as f32 * (1.0 - v) + alpha_new) as u32;
-            let red   = (red_old   as f32 * (1.0 - v) + red_new)   as u32;
+            let red = (red_old as f32 * (1.0 - v) + red_new) as u32;
             let green = (green_old as f32 * (1.0 - v) + green_new) as u32;
-            let blue  = (blue_old  as f32 * (1.0 - v) + blue_new)  as u32;
+            let blue = (blue_old as f32 * (1.0 - v) + blue_new) as u32;
 
             let color = (alpha << 24) | (red << 16) | (green << 8) | blue;
 
@@ -87,7 +92,12 @@ impl DrawingBackend for MiniFbBackend {
 fn main() {
     {
         let mut font_manager = FontManager::get_mut();
-        font_manager.load(None,Path::new("/run/media/rubens/ssd/projects/clover_ui/inter.ttf")).expect("Unable to load font");
+        font_manager
+            .load(
+                None,
+                Path::new("/run/media/rubens/ssd/projects/clover_ui/inter.ttf"),
+            )
+            .expect("Unable to load font");
     }
     let mut backend = MiniFbBackend::new();
 
@@ -100,104 +110,119 @@ fn main() {
             ..Default::default()
         },
     )
-        .unwrap_or_else(|e| {
-            panic!("{}", e);
-        });
+    .unwrap_or_else(|e| {
+        panic!("{}", e);
+    });
 
     let mut context = Context::default();
 
     let root = ElementBuilder::default()
         .with_id("root".to_string())
-        .with_styles(
-            vec![
-                StyleProperty::Border(Border::new(5, Color::default())),
-                StyleProperty::Height(HEIGHT),
-                StyleProperty::Width(WIDTH)
-            ]
-        )
-        .with_style_on_hover(
-            vec![
-                StyleProperty::Border(Border::new(5, Color::new(255, 255, 255, 255)))
-            ]
-        )
+        .with_styles(vec![
+            StyleProperty::BackgroundColor(Color::new(255, 252, 252, 254)),
+            StyleProperty::Height(HEIGHT),
+            StyleProperty::Width(WIDTH),
+        ])
         .build();
 
-    let flex_parent = ElementBuilder::default()
-        .with_id("flex_parent".to_string())
-        .with_styles(
-            vec![
-                StyleProperty::Margin(Spacing::new(10)),
-                StyleProperty::Border(Border::new(10, Color::new(255, 0, 0, 255))),
-                StyleProperty::Display(Flex {
-                    direction: FlexDirection::Col,
-                })
-            ]
-        )
+    let top_banner = ElementBuilder::default()
+        .with_styles(vec![
+            StyleProperty::Padding(Spacing::uniform(10)),
+            StyleProperty::BackgroundColor(Color::new(255, 252, 252, 254)),
+            StyleProperty::Display(Flex {
+                direction: FlexDirection::Row,
+                align_content: AlignContent::Start,
+                align_items: AlignItems::Stretch,
+            }),
+        ])
         .build();
 
-    let red_child = ElementBuilder::default()
-        .with_id("red_child".to_string())
-        .with_styles(
-            vec![
-                StyleProperty::Margin(Spacing::new(10)),
-                StyleProperty::Padding(Spacing::new(10)),
-                StyleProperty::BackgroundColor(Color::new(255, 255, 0, 0))
-            ]
-        ).build();
-
-    let green_child = ElementBuilder::default()
-        .with_id("green_child".to_string())
-        .with_styles(
-            vec![
-                StyleProperty::Margin(Spacing::new(10)),
-                StyleProperty::Padding(Spacing::new(10)),
-                StyleProperty::BackgroundColor(Color::new(255, 0, 255, 0)),
-                StyleProperty::Color(Color::new(255, 255, 255, 255)),
-                StyleProperty::Display(Flex {
-                    direction: FlexDirection::Col,
-                })
-            ]
-        ).build();
-
-    let blue_child = ElementBuilder::default()
-        .with_id("blue_child".to_string())
-        .with_styles(
-            vec![
-                StyleProperty::Padding(Spacing::new(10)),
-                StyleProperty::BackgroundColor(Color::new(255, 0, 0, 255)),
-                StyleProperty::Border(Border::new(10, Color::default()))
-            ]
-        ).with_style_on_hover(
-            vec![
-                StyleProperty::Border(Border::new(10, Color::new(255, 255, 255 ,255))),
-                StyleProperty::BackgroundColor(Color::new(100, 150, 150, 150))
-            ]
-        )
+    let header = ElementBuilder::default()
+        .with_styles(vec![
+            StyleProperty::Padding(Spacing::uniform(10)),
+            StyleProperty::BackgroundColor(Color::new(255, 252, 252, 254)),
+        ])
         .build();
 
-    let custom_child = ElementBuilder::new(ElementType::Label {
-        value: "Testing".to_string()
+    let h1 = ElementBuilder::new(ElementType::Label {
+        value: "Company Profile".to_string(),
     })
-        .with_id("custom".to_string())
-        .with_styles(
-            vec![
-                StyleProperty::BackgroundColor(Color::new(255, 255, 0, 255)),
-                StyleProperty::FontSize(40.0),
-                StyleProperty::Color(Color::new(255, 255, 255, 255)),
-                StyleProperty::Border(Border::new(5, Color::new(255, 255, 0, 255)))
-            ]
-        )
-        .with_style_on_hover(
-            vec![
-                StyleProperty::Border(Border::new(5, Color::new(255, 255, 255, 255)))
-            ]
-        ).build();
+    .with_styles(vec![
+        StyleProperty::BackgroundColor(Color::new(255, 252, 252, 254)),
+        StyleProperty::Color(Color::new(255, 13, 12, 34)),
+        StyleProperty::FontSize(40.0),
+    ])
+    .build();
 
-    Element::insert(&root, &flex_parent);
-    Element::insert(&flex_parent, &red_child);
-    Element::insert(&flex_parent, &green_child);
-    Element::insert(&green_child, &custom_child);
-    Element::insert(&green_child, &blue_child);
+    let h2 = ElementBuilder::new(ElementType::Label {
+        value: "Update your company photo and details here.".to_string(),
+    })
+    .with_styles(vec![
+        StyleProperty::BackgroundColor(Color::new(255, 249, 250, 251)),
+        StyleProperty::Color(Color::new(255, 100, 100, 100)),
+        StyleProperty::FontSize(20.0),
+    ])
+    .build();
+
+    let form = ElementBuilder::default().build();
+
+    let actions = ElementBuilder::default()
+        .with_styles(vec![
+            StyleProperty::Padding(Spacing::uniform(10)),
+            StyleProperty::BackgroundColor(Color::new(255, 252, 252, 254)),
+            StyleProperty::Display(Flex {
+                direction: FlexDirection::RowReverse,
+                align_content: AlignContent::Start,
+                align_items: AlignItems::Stretch,
+            }),
+        ])
+        .build();
+
+    let cancel_button = ElementBuilder::new(ElementType::Label {
+        value: "Cancel".to_string(),
+    })
+    .with_styles(vec![
+        StyleProperty::Padding(Spacing::new(5, 15, 5, 15)),
+        StyleProperty::Margin(Spacing::uniform(5)),
+        StyleProperty::BackgroundColor(Color::new(255, 249, 250, 251)),
+        StyleProperty::Border(Border::new(1, Color::new(255, 100, 100, 100))),
+        StyleProperty::Color(Color::new(255, 13, 12, 34)),
+        StyleProperty::FontSize(20.0),
+    ])
+    .with_style_on_hover(vec![StyleProperty::Border(Border::new(
+        1,
+        Color::new(255, 150, 150, 150),
+    ))])
+    .build();
+
+    let save_button = ElementBuilder::new(ElementType::Label {
+        value: "Save".to_string(),
+    })
+    .with_styles(vec![
+        StyleProperty::Padding(Spacing::new(5, 15, 5, 15)),
+        StyleProperty::Margin(Spacing::uniform(5)),
+        StyleProperty::BackgroundColor(Color::new(255, 128, 85, 218)),
+        StyleProperty::Border(Border::new(1, Color::new(255, 128, 85, 218))),
+        StyleProperty::Color(Color::new(255, 245, 245, 245)),
+        StyleProperty::FontSize(20.0),
+    ])
+    .with_style_on_hover(vec![StyleProperty::Border(Border::new(
+        1,
+        Color::new(255, 158, 115, 248),
+    ))])
+    .build();
+
+    Element::insert(&root, &top_banner);
+    Element::insert(&top_banner, &header);
+    Element::insert(&top_banner, &actions);
+
+    Element::insert(&header, &h1);
+    Element::insert(&header, &h2);
+
+    Element::insert(&actions, &save_button);
+    Element::insert(&actions, &cancel_button);
+
+    Element::insert(&root, &form);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         if window.get_mouse_down(minifb::MouseButton::Left) {
@@ -231,19 +256,9 @@ fn main() {
             });
             painter.draw();
         }
-        // traverse(&root, |elem| {
-        //     let style = elem.style();
-        //
-        //     for dy in 0..style.height() {
-        //         for dx in 0..style.width() {
-        //             let index = (style.x + dx) + (style.y + dy) * WIDTH;
-        //             if let Some(color) = style.color_at_px(dx, dy) {
-        //                 buffer[index] = color;
-        //             }
-        //         }
-        //     }
-        // });
 
-        window.update_with_buffer(&backend.buffer, WIDTH, HEIGHT).unwrap();
+        window
+            .update_with_buffer(&backend.buffer, WIDTH, HEIGHT)
+            .unwrap();
     }
 }

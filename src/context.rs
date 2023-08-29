@@ -1,16 +1,16 @@
-use std::cell::RefCell;
-use std::mem;
-use std::rc::Rc;
 use crate::element::Element;
 use crate::events::Events;
 use crate::state::{Key, MouseButton, State};
+use std::cell::RefCell;
+use std::mem;
+use std::rc::Rc;
 
 #[derive(Default)]
 pub struct Context {
     prev_state: State,
     curr_state: State,
 
-    pub event_queue: Vec<Events>
+    pub event_queue: Vec<Events>,
 }
 
 impl Context {
@@ -23,7 +23,10 @@ impl Context {
         for key in &self.curr_state.keys.pressed {
             self.event_queue.push(Events::KeyDown(key.clone()));
         }
-        self.prev_state.keys.pressed.retain(|key| !self.curr_state.keys.pressed.contains(key));
+        self.prev_state
+            .keys
+            .pressed
+            .retain(|key| !self.curr_state.keys.pressed.contains(key));
 
         for key in &self.prev_state.keys.pressed {
             self.event_queue.push(Events::KeyUp(key.clone()));
@@ -36,7 +39,10 @@ impl Context {
                 self.event_queue.push(Events::Click(button.clone()));
             }
         }
-        self.prev_state.mouse.pressed.retain(|key| !self.curr_state.mouse.pressed.contains(key));
+        self.prev_state
+            .mouse
+            .pressed
+            .retain(|key| !self.curr_state.mouse.pressed.contains(key));
 
         for button in &self.prev_state.mouse.pressed {
             self.event_queue.push(Events::MouseUp(button.clone()));
@@ -44,12 +50,14 @@ impl Context {
 
         // MOUSE MOVE
         if self.curr_state.mouse.pos != self.prev_state.mouse.pos {
-            self.event_queue.push(Events::MouseMove(self.curr_state.mouse.pos));
+            self.event_queue
+                .push(Events::MouseMove(self.curr_state.mouse.pos));
         }
 
         // MOUSE SCROLL
         if self.curr_state.mouse.scroll_wheel != self.prev_state.mouse.scroll_wheel {
-            self.event_queue.push(Events::MouseScroll(self.curr_state.mouse.scroll_wheel));
+            self.event_queue
+                .push(Events::MouseScroll(self.curr_state.mouse.scroll_wheel));
         }
 
         // SWAP STATES AND CLEAR CURRENT STATE TO USE FOR RECORDING

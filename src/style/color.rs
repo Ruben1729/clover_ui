@@ -1,6 +1,6 @@
 #[derive(Debug, Default, Hash, Clone, Copy)]
 pub struct Color {
-    value: u32
+    value: u32,
 }
 
 impl Color {
@@ -9,14 +9,14 @@ impl Color {
         Self { value }
     }
     pub fn new_u32(val: u32) -> Self {
-        Color {
-            value: val
-        }
+        Color { value: val }
     }
     pub fn get_u32(&self) -> u32 {
         self.value
     }
-    pub fn set_u32(&mut self, val: u32) { self.value = val }
+    pub fn set_u32(&mut self, val: u32) {
+        self.value = val
+    }
     pub fn set_alpha(&mut self, a: u8) {
         self.value = (self.value & 0x00FFFFFF) | ((a as u32) << 24);
     }
