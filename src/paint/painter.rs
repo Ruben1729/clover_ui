@@ -1,6 +1,5 @@
 use crate::paint::Primitive;
-use crate::style::Color;
-use rusttype::{point, Font, Scale};
+use rusttype::{point, Font};
 
 // Define a trait for the drawing backend
 pub trait DrawingBackend {

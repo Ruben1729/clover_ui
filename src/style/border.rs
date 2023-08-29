@@ -1,6 +1,6 @@
 use crate::style::Color;
 
-#[derive(Debug, Default, Hash, Clone, Copy)]
+#[derive(Debug, Default, Hash, Clone)]
 pub struct Border {
     pub top_color: Color,
     pub right_color: Color,

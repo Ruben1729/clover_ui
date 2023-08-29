@@ -1,4 +1,4 @@
-#[derive(Debug, Default, Hash, Clone, Copy)]
+#[derive(Debug, Default, Hash, Clone)]
 pub struct Color {
     value: u32,
 }

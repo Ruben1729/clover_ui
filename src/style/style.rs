@@ -1,23 +1,4 @@
-use crate::style::{Border, Color, Display, Spacing};
-use rusttype::Font;
-
-#[derive(Debug, Clone)]
-pub enum StyleProperty {
-    Padding(Spacing),
-    Margin(Spacing),
-    Border(Border),
-    Height(usize),
-    Width(usize),
-    X(usize),
-    Y(usize),
-    Display(Display),
-    BackgroundColor(Color),
-    Color(Color),
-    Font(Option<String>),
-    FontSize(f32),
-}
-
-pub type ConditionalStyle = Vec<StyleProperty>;
+use crate::style::{Border, Color, Spacing, StyleProperty, StyleSheet};
 
 #[derive(Default, Clone)]
 pub struct Style {
@@ -29,57 +10,49 @@ pub struct Style {
     pub y: usize,
     pub x: usize,
 
-    pub display: Display,
+    // pub display: Display,
 
     pub background_color: Color,
     pub color: Color,
 
-    pub font: Option<String>,
+    pub font_family: Option<String>,
     pub font_size: f32,
 }
 
 impl Style {
-    pub fn content_x(&self) -> usize {
-        self.x + self.margin.left + self.border.left + self.padding.left
-    }
-
-    pub fn content_y(&self) -> usize {
-        self.y + self.margin.top + self.border.top + self.padding.top
-    }
-
-    pub fn width(&self) -> usize {
-        self.margin.horizontal() + self.border.horizontal() + self.padding.horizontal() + self.width
-    }
-
-    pub fn height(&self) -> usize {
-        self.margin.vertical() + self.border.vertical() + self.padding.vertical() + self.height
-    }
-
-    pub fn color_at_px(&self, dx: usize, dy: usize) -> Option<u32> {
-        return if dx > self.margin.left + self.border.left
-            && dx
-                < self.margin.left
-                    + self.border.left
-                    + self.padding.left
-                    + self.width
-                    + self.padding.right
-            && dy > self.margin.top + self.border.top
-            && dy
-                < self.margin.top
-                    + self.border.top
-                    + self.padding.top
-                    + self.height
-                    + self.padding.bottom
-        {
-            Some(self.background_color.get_u32())
-        } else if dx > self.margin.left
-            && dx < self.width() - self.margin.right
-            && dy > self.margin.top
-            && dy < self.height() - self.margin.bottom
-        {
-            Some(self.border.color().0)
-        } else {
-            None
-        };
+    pub fn apply(&mut self, styles: &StyleSheet) {
+        for curr_style in &styles.0 {
+            match curr_style {
+                StyleProperty::Padding(val) => {
+                    self.padding = val.clone();
+                }
+                StyleProperty::Margin(val) => {
+                    self.margin = val.clone();
+                }
+                StyleProperty::Border(val) => {
+                    self.border = val.clone();
+                }
+                StyleProperty::Height(val) => {
+                    self.height = val.clone();
+                }
+                StyleProperty::Width(val) => {
+                    self.width = val.clone();
+                }
+                StyleProperty::X(val) => {
+                    self.x = val.clone();
+                }
+                StyleProperty::Y(val) => {
+                    self.y = val.clone();
+                }
+                StyleProperty::BackgroundColor(val) => {
+                    self.background_color = val.clone();
+                }
+                StyleProperty::Color(val) => {
+                    self.color = val.clone();
+                }
+                StyleProperty::FontFamily(val) => self.font_family = val.clone(),
+                StyleProperty::FontSize(val) => self.font_size = val.clone(),
+            }
+        }
     }
 }

@@ -1,5 +1,4 @@
-use crate::style::Color;
-use rusttype::{Font, Scale};
+use rusttype::{Scale};
 
 pub enum Primitive {
     Circle {
