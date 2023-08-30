@@ -12,12 +12,12 @@ pub enum Layout {
     Flex {
         flex_direction: FlexDirection,
         align_content: AlignContent,
-        align_items: AlignItems
+        align_items: AlignItems,
     },
     Grid {
         align_content: AlignContent,
-        align_items: AlignItems
-    }
+        align_items: AlignItems,
+    },
 }
 
 impl Default for Layout {

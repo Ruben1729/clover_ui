@@ -1,7 +1,7 @@
 use crate::state::{Key, MouseButton};
 
 #[derive(Debug, Clone, Copy)]
-pub enum Events {
+pub enum Event {
     KeyDown(Key),
     KeyUp(Key),
 

@@ -1,7 +1,7 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use crate::element::{Element, ElementType};
 use crate::ui::Ui;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 impl Ui {
     pub fn flex(&mut self, add_contents: impl FnOnce(&mut Ui)) -> Rc<RefCell<Element>> {
@@ -30,6 +30,7 @@ impl Ui {
             Some(self.current_parent.front().unwrap().clone()),
         );
 
+        // Create node and compute dimensions
         self.create_node(new_node.clone());
         self.unbind_styles(new_node.clone());
         new_node
@@ -42,6 +43,7 @@ impl Ui {
             Some(self.current_parent.front().unwrap().clone()),
         );
 
+        // Create node and compute dimensions
         self.create_node(new_node.clone());
         self.unbind_styles(new_node.clone());
         new_node

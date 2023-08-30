@@ -1,10 +1,9 @@
-
 #[derive(Debug, Clone)]
 pub enum AlignContent {
     Start,
     Center,
     SpaceBetween,
-    SpaceAround
+    SpaceAround,
 }
 
 impl Default for AlignContent {
@@ -18,7 +17,7 @@ pub enum AlignItems {
     Stretch,
     Center,
     Start,
-    End
+    End,
 }
 
 impl Default for AlignItems {

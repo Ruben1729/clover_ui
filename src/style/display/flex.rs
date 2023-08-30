@@ -1,10 +1,9 @@
-
 #[derive(Debug, Clone)]
 pub enum FlexDirection {
     Row,
     RowReverse,
     Col,
-    ColReverse
+    ColReverse,
 }
 
 impl Default for FlexDirection {
