@@ -1,4 +1,4 @@
-use crate::style::{Color, StyleProperty, StylePropertyKey, StylePropertyMap};
+use crate::style::{StylePropertyKey, StylePropertyMap};
 
 pub type StyleSheet = StylePropertyMap;
 
@@ -20,6 +20,7 @@ impl StyleSheet {
                 | StylePropertyKey::Width
                 | StylePropertyKey::X
                 | StylePropertyKey::Y
+                | StylePropertyKey::Display
                 | StylePropertyKey::BackgroundColor => {}
                 StylePropertyKey::Color
                 | StylePropertyKey::FontFamily

@@ -1,8 +1,10 @@
+mod display;
 mod color;
 mod properties;
 mod spacing;
 mod style_sheet;
 
+pub use self::display::*;
 pub use self::color::*;
 pub use self::properties::*;
 pub use self::spacing::*;

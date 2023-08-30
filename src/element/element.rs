@@ -14,7 +14,7 @@ pub struct Element {
 }
 
 pub enum ElementType {
-    FlexBox,
+    Layout,
     Label,
     Button,
 }

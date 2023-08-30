@@ -1,7 +1,7 @@
-use crate::style::{Color, Spacing};
-use util_macros::DeriveStyleKeys;
+use crate::style::{Color, Layout, Spacing};
+use enum2map::Enum2Map;
 
-#[derive(Debug, Clone, DeriveStyleKeys)]
+#[derive(Debug, Clone, Enum2Map)]
 pub enum StyleProperty {
     Padding(Spacing),
     Margin(Spacing),
@@ -13,14 +13,15 @@ pub enum StyleProperty {
     Y(usize),
     BackgroundColor(Color),
     Color(Color),
+    Display(Layout),
     FontFamily(Option<String>),
     FontSize(f32),
 }
 
 #[cfg(test)]
 mod tests {
-    use util_macros::DeriveStyleKeys;
-    #[derive(Debug, PartialEq, Eq, Clone, DeriveStyleKeys)]
+    use enum2map::Enum2Map;
+    #[derive(Debug, PartialEq, Eq, Clone, Enum2Map)]
     pub enum TestValue {
         Padding(usize),
         Margin(String),
