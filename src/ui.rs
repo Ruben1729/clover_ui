@@ -27,6 +27,7 @@ impl Ui {
         let new_flex_node = Element::new("flex".to_string(), ElementType::FlexBox, Some(self.current_parent.front().unwrap().clone()));
 
         if !self.style_stack.is_empty() {
+            // We set the owner of this style to the first element that claims it
             if self.style_stack.last().unwrap().0 == None {
                 self.style_stack.last_mut().unwrap().0 = Some(new_flex_node.borrow().uuid());
             }
@@ -85,7 +86,8 @@ impl Ui {
             ElementType::Label => "Label",
             ElementType::Button => "Button"
         };
-        println!("{}{} ({} with {})", indent, id, node_type, node.borrow().style.background_color.get_u32());
+
+        println!("{}{} ({} with bg {})", indent, id, node_type, node.borrow().style.get_backgroundcolor().get_u32());
 
         for child in &node.borrow().children {
             Ui::_traverse_and_print(child, level + 1);

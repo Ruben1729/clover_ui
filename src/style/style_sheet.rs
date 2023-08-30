@@ -1,10 +1,11 @@
-use crate::style::{Color, StyleProperty};
+use crate::style::{Color, StyleProperty, StylePropertyKey, StylePropertyMap};
 
-#[derive(Default)]
-pub struct StyleSheet(pub(crate) Vec<StyleProperty>);
+pub type StyleSheet = StylePropertyMap;
 
 impl StyleSheet {
-    pub fn set_background_color(&mut self, a: u8, r: u8, g: u8, b: u8) {
-        self.0.push(StyleProperty::BackgroundColor(Color::new(a, r, g, b)));
+    pub fn apply(&mut self, other: &StyleSheet) {
+        for (key, value) in other.values.iter() {
+            self.values.insert(key.clone(), value.clone());
+        }
     }
 }

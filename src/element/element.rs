@@ -1,13 +1,13 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use uuid::Uuid;
-use crate::style::Style;
+use crate::style::{StyleSheet};
 
 pub struct Element {
     pub id: String,
     uuid: Uuid,
     pub ty: ElementType,
-    pub style: Style,
+    pub style: StyleSheet,
 
     parent: Option<Rc<RefCell<Element>>>,
     pub children: Vec<Rc<RefCell<Element>>>,
@@ -25,7 +25,7 @@ impl Element {
             id,
             uuid: Uuid::new_v4(),
             ty,
-            style: Style::default(),
+            style: StyleSheet::new(),
             parent,
             children: vec![],
         }))
