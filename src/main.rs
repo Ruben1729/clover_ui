@@ -1,5 +1,6 @@
+use std::path::Path;
 use clover_ui::paint::{DrawingBackend, Painter};
-use clover_ui::style::{Color, Spacing, StyleSheet};
+use clover_ui::style::{Color, FontManager, Spacing, StyleSheet};
 use clover_ui::ui::Ui;
 use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
 use clover_ui::context::Context;
@@ -82,6 +83,15 @@ impl MiniFbBackend {
 }
 
 fn main() {
+    {
+        let mut font_manager = FontManager::get_mut();
+        font_manager
+            .load(
+                None,
+                Path::new("/run/media/rubens/ssd/projects/clover_ui/inter.ttf"),
+            )
+            .expect("Unable to load font");
+    }
     let mut window = Window::new(
         "Test - ESC to exit",
         WIDTH,
@@ -100,28 +110,15 @@ fn main() {
     let mut ui = Ui::default();
 
     let mut text_ss = StyleSheet::new();
-    text_ss.set_padding(Spacing::uniform(100));
-    text_ss.set_backgroundcolor(Color::new(100, 0, 0, 255));
-    text_ss.set_color(Color::new(255, 0, 255, 255));
-
-    let mut header = StyleSheet::new();
-    header.set_backgroundcolor(Color::new(0, 255, 0, 0));
-    header.set_color(Color::new(255, 255, 0, 0));
+    text_ss.set_padding(Spacing::uniform(10));
+    text_ss.set_backgroundcolor(Color::new(255, 250, 250, 250));
+    text_ss.set_color(Color::new(255, 20, 20, 20));
+    text_ss.set_fontsize(22.4);
 
     ui.with_style_sheet(text_ss).flex(|ui| {
-        ui.with_style_sheet(header).flex(|ui| {
-            ui.label("first".to_string());
-            ui.label("second".to_string());
-            ui.label("third".to_string());
-        });
-
         ui.flex(|ui| {
-            ui.label("other".to_string());
+            ui.label("Profile");
         });
-    });
-
-    ui.flex(|ui| {
-        ui.label("sibling".to_string());
     });
 
     while window.is_open() && !window.is_key_down(Key::Escape) {

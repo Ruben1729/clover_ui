@@ -14,7 +14,7 @@ pub struct Ui {
 
 impl Default for Ui {
     fn default() -> Self {
-        let root = Element::new("root".to_string(), ElementType::Layout, None);
+        let root = Element::new(ElementType::Layout, None);
         Ui {
             root: root.clone(),
             current_parent: vec![root].into(),
@@ -57,19 +57,17 @@ impl Ui {
 
     fn _traverse_and_print(node: &Rc<RefCell<Element>>, level: usize) {
         let indent = " ".repeat(level * 4);
-        let id = node.borrow().id.clone();
         let node_type = match node.borrow().ty {
             ElementType::Layout => "Layout",
-            ElementType::Label => "Label",
+            ElementType::Label(_) => "Label",
             ElementType::Button => "Button",
         };
 
         println!(
-            "{}{} ({} with uuid {})",
+            "{}{} ({})",
             indent,
-            id,
-            node_type,
             node.borrow().uuid(),
+            node_type,
         );
 
         for child in &node.borrow().children {

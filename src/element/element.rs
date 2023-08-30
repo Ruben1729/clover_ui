@@ -2,6 +2,7 @@ use crate::style::StyleSheet;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
+use rusttype::Scale;
 use uuid::Uuid;
 use crate::event::Event;
 use crate::paint::{Drawable, Primitive};
@@ -9,7 +10,7 @@ use crate::paint::Primitive::Rectangle;
 
 pub enum ElementType {
     Layout,
-    Label,
+    Label(String),
     Button,
 }
 
@@ -25,8 +26,8 @@ pub enum ElementState {
 }
 
 pub struct Element {
-    pub id: String,
     uuid: Uuid,
+
     pub ty: ElementType,
     pub style: StyleSheet,
 
@@ -38,12 +39,10 @@ pub struct Element {
 
 impl Element {
     pub fn new(
-        id: String,
         ty: ElementType,
         parent: Option<Rc<RefCell<Element>>>,
     ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
-            id,
             uuid: Uuid::new_v4(),
             ty,
             style: StyleSheet::new(),
@@ -113,6 +112,23 @@ impl Drawable for Element {
             height: (style.get_padding().vertical() + style.get_height()) as f32,
             color: style.get_backgroundcolor().get_u32(),
         });
+
+        match &self.ty {
+            ElementType::Layout |
+            ElementType::Button => {}
+            ElementType::Label(value) => {
+                primitives.push(Primitive::Text {
+                    x: self.style.get_content_x() as f32,
+                    y: self.style.get_content_y() as f32,
+                    scale: Scale {
+                        x: self.style.get_fontsize(),
+                        y: self.style.get_fontsize(),
+                    },
+                    content: value.clone(),
+                    color: self.style.get_color().get_u32(),
+                });
+            }
+        }
 
         primitives
     }

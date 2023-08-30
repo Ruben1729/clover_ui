@@ -7,7 +7,6 @@ impl Ui {
     pub fn flex(&mut self, add_contents: impl FnOnce(&mut Ui)) -> Rc<RefCell<Element>> {
         // Create node
         let new_node = Element::new(
-            "flex".to_string(),
             ElementType::Layout,
             Some(self.current_parent.front().unwrap().clone()),
         );
@@ -23,9 +22,8 @@ impl Ui {
         new_node
     }
 
-    pub fn button(&mut self, id: String) -> Rc<RefCell<Element>> {
+    pub fn button(&mut self) -> Rc<RefCell<Element>> {
         let new_node = Element::new(
-            id,
             ElementType::Button,
             Some(self.current_parent.front().unwrap().clone()),
         );
@@ -36,10 +34,9 @@ impl Ui {
         new_node
     }
 
-    pub fn label(&mut self, id: String) -> Rc<RefCell<Element>> {
+    pub fn label(&mut self, val: &str) -> Rc<RefCell<Element>> {
         let new_node = Element::new(
-            id,
-            ElementType::Label,
+            ElementType::Label(val.to_string()),
             Some(self.current_parent.front().unwrap().clone()),
         );
 

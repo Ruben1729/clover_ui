@@ -1,8 +1,9 @@
 use crate::element::{Element, ElementType};
-use crate::style::{FlexDirection, Layout};
+use crate::style::{FlexDirection, FontManager, Layout};
 use crate::ui::Ui;
 use std::cell::RefCell;
 use std::rc::Rc;
+use rusttype::{point, Scale};
 
 impl Ui {
     pub fn compute_dimensions(&mut self) {
@@ -17,8 +18,7 @@ impl Ui {
 
         let mut content_w = 0;
         let mut content_h = 0;
-
-        match element.ty {
+        match &element.ty {
             ElementType::Layout => {
                 (content_w, content_h) = match &element.style.get_display() {
                     Layout::Block => (
@@ -65,9 +65,33 @@ impl Ui {
                     Layout::Grid { .. } | Layout::InlineBlock | Layout::Hidden => (0, 0),
                 };
             }
-            ElementType::Label => {}
-            ElementType::Button => {}
-        }
+            ElementType::Label(value) => {
+                let manager = FontManager::get();
+                let font = manager
+                    .get_font(&element.style.get_fontfamily())
+                    .expect("Unable to load font");
+
+                let scale = Scale::uniform(element.style.get_fontsize());
+                let v_metrics = font.v_metrics(scale);
+
+                let glyphs: Vec<_> = font
+                    .layout(value, scale, point(0.0, 0.0 + v_metrics.ascent))
+                    .collect();
+
+                (content_w, content_h) = ({
+                    let min_x = glyphs
+                        .first()
+                        .map(|g| g.pixel_bounding_box().unwrap().min.x)
+                        .unwrap();
+                    let max_x = glyphs
+                        .last()
+                        .map(|g| g.pixel_bounding_box().unwrap().max.x)
+                        .unwrap();
+                    (max_x - min_x) as usize
+                }, (v_metrics.ascent - v_metrics.descent).ceil() as usize)
+            }
+            _ => {}
+        };
 
         element.style.set_width(content_w);
         element.style.set_height(content_h);
