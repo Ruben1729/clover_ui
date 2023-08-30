@@ -1,7 +1,7 @@
+use crate::style::StyleSheet;
 use std::cell::RefCell;
 use std::rc::Rc;
 use uuid::Uuid;
-use crate::style::{StyleSheet};
 
 pub struct Element {
     pub id: String,
@@ -16,11 +16,15 @@ pub struct Element {
 pub enum ElementType {
     FlexBox,
     Label,
-    Button
+    Button,
 }
 
 impl Element {
-    pub fn new(id: String, ty: ElementType, parent: Option<Rc<RefCell<Element>>>) -> Rc<RefCell<Self>> {
+    pub fn new(
+        id: String,
+        ty: ElementType,
+        parent: Option<Rc<RefCell<Element>>>,
+    ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
             id,
             uuid: Uuid::new_v4(),

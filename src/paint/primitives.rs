@@ -1,4 +1,4 @@
-use rusttype::{Scale};
+use rusttype::Scale;
 
 pub enum Primitive {
     Circle {
