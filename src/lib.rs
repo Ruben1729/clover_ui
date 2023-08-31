@@ -1,3 +1,5 @@
+#![feature(unboxed_closures)]
+
 pub mod element;
 pub mod event;
 pub mod paint;

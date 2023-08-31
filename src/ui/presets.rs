@@ -2,7 +2,7 @@ use crate::element::{Element, ElementState, ElementType};
 use crate::ui::Ui;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::style::{AlignContent, AlignItems, Color, COLOR_BLUE_500, COLOR_BLUE_600, COLOR_WHITE, FlexDirection, Layout, Spacing, StyleSheet};
+use crate::style::{COLOR_BLUE_500, COLOR_BLUE_600, COLOR_WHITE, Spacing, StyleSheet};
 
 impl Ui {
     pub fn flex(&mut self, add_contents: impl FnOnce(&mut Ui)) -> Rc<RefCell<Element>> {
@@ -27,13 +27,12 @@ impl Ui {
         let mut button_base_styles = StyleSheet::new();
         button_base_styles.set_backgroundcolor(COLOR_BLUE_600);
         button_base_styles.set_color(COLOR_WHITE);
+        button_base_styles.set_padding(Spacing::new(5, 10, 5, 10));
 
         let container = self.with_style_sheet(button_base_styles).flex(add_contents);
 
         let mut button_styles = StyleSheet::new();
         button_styles.set_backgroundcolor(COLOR_BLUE_500);
-
-        container.borrow_mut().style.set_padding(Spacing::new(5, 10, 5, 10));
         container.borrow_mut().state_style.insert(ElementState::Hovered, button_styles);
 
         container
