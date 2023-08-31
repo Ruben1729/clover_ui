@@ -1,20 +1,19 @@
 use crate::style::StyleSheet;
-use std::cell::RefCell;
 use std::collections::{HashMap};
 use std::hash::Hash;
-use std::rc::Rc;
 use rusttype::Scale;
 use uuid::Uuid;
 use crate::event::Event;
 use crate::paint::{Drawable, Primitive};
 use crate::paint::Primitive::Rectangle;
 
-pub enum ElementType {
+pub enum ElementType<'a> {
     Layout,
     Label(String),
+    TextEdit(&'a mut String)
 }
 
-impl Default for ElementType {
+impl<'a> Default for ElementType<'a> {
     fn default() -> Self {
         ElementType::Layout
     }
@@ -26,25 +25,25 @@ pub enum ElementState {
     Focused
 }
 
-pub struct Element {
+pub struct Element<'a> {
     uuid: Uuid,
 
-    pub ty: ElementType,
+    pub ty: ElementType<'a>,
     pub style: StyleSheet,
     pub state_style: HashMap<ElementState, StyleSheet>,
 
-    parent: Option<Rc<RefCell<Element>>>,
-    pub children: Vec<Rc<RefCell<Element>>>,
+    parent: Option<usize>,
+    pub children: Vec<usize>,
 
     pub states: Vec<ElementState>,
 }
 
-impl Element {
+impl<'a> Element<'a> {
     pub fn new(
-        ty: ElementType,
-        parent: Option<Rc<RefCell<Element>>>,
-    ) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Self {
+        ty: ElementType<'a>,
+        parent: Option<usize>,
+    ) -> Self {
+        Self {
             uuid: Uuid::new_v4(),
             ty,
             style: StyleSheet::new(),
@@ -52,7 +51,7 @@ impl Element {
             parent,
             children: vec![],
             states: Vec::new(),
-        }))
+        }
     }
 
     pub fn style(&mut self) -> StyleSheet {
@@ -78,7 +77,7 @@ impl Element {
         self.uuid
     }
 
-    pub fn add_child(&mut self, child: Rc<RefCell<Element>>) {
+    pub fn add_child(&mut self, child: usize) {
         self.children.push(child);
     }
 
@@ -118,7 +117,7 @@ impl Element {
     }
 }
 
-impl Drawable for Element {
+impl<'a> Drawable for Element<'a> {
     fn draw(&mut self) -> Vec<Primitive> {
         let mut primitives = Vec::new();
         let style = self.style();
@@ -151,6 +150,9 @@ impl Drawable for Element {
                     content: value.clone(),
                     color: style.get_color().get_u32(),
                 });
+            },
+            ElementType::TextEdit(_) => {
+
             }
         }
 

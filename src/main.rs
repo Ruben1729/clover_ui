@@ -115,20 +115,10 @@ fn main() {
     text_ss.set_color(Color::new(255, 20, 20, 20));
     text_ss.set_fontsize(15.4);
 
-    let mut val = false;
-
     ui.with_style_sheet(text_ss).flex(|ui| {
         ui.flex(|ui| {
-            ui.h2("Profile");
-            ui.p("This information will be displayed publicly so be careful what you share.");
-        });
-
-        ui.flex(|ui| {
-            ui.button(|ui| {
-                ui.label("Save");
-            }).borrow_mut().on_click(|| {
-                println!("I got clicked");
-            });
+            ui.label("Profile");
+            ui.label("This information will be displayed publicly so be careful what you share.");
         });
     });
 
