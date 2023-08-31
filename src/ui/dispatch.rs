@@ -13,14 +13,11 @@ impl<'a> Ui<'a> {
             }
         }
 
-        let mut initial_hovered = false;
-        let mut is_hovered = false;
-
-        initial_hovered = self.dom_tree[element_idx].is_hovered();
+        let initial_hovered = self.dom_tree[element_idx].is_hovered();
 
         self.dom_tree[element_idx].handle_event(event);
 
-        initial_hovered = self.dom_tree[element_idx].is_hovered();
+        let is_hovered = self.dom_tree[element_idx].is_hovered();
 
         if is_hovered != initial_hovered {
             let mut new_event = Event::MouseEnter;

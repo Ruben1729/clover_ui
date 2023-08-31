@@ -1,16 +1,15 @@
 use crate::element::{Element, ElementType};
-use crate::style::StyleSheet;
-use std::cell::{RefCell};
-use std::collections::VecDeque;
-use std::rc::Rc;
-use uuid::Uuid;
 use crate::paint::{Drawable, Primitive};
+use crate::style::StyleSheet;
+use std::collections::VecDeque;
+use uuid::Uuid;
 
 pub struct Ui<'a> {
     pub root_idx: usize,
     pub current_parent: VecDeque<usize>,
+    pub current_interactive_widget: Option<usize>,
     pub style_stack: Vec<(Option<Uuid>, StyleSheet)>,
-    pub dom_tree: Vec<Element<'a>>
+    pub dom_tree: Vec<Element<'a>>,
 }
 
 impl<'a> Default for Ui<'a> {
@@ -23,8 +22,9 @@ impl<'a> Default for Ui<'a> {
         Ui {
             root_idx,
             current_parent: vec![root_idx].into(),
+            current_interactive_widget: None,
             style_stack: Vec::new(),
-            dom_tree
+            dom_tree,
         }
     }
 }
@@ -73,7 +73,7 @@ impl<'a> Ui<'a> {
         let node_type = match self.dom_tree[element_idx].ty {
             ElementType::Layout => "Layout",
             ElementType::Label(_) => "Label",
-            ElementType::TextEdit(_) => "TextEdit"
+            ElementType::TextEdit(_) => "TextEdit",
         };
 
         println!(

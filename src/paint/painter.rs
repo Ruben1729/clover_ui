@@ -1,6 +1,6 @@
 use crate::paint::Primitive;
-use rusttype::{point, Font};
 use crate::style::Color;
+use rusttype::{point, Font};
 
 // Define a trait for the drawing backend
 pub trait DrawingBackend {
@@ -87,11 +87,7 @@ impl<'a> Painter<'a> {
                                 let new_y = (y_ + bounding_box.min.y as u32) as usize;
                                 let mut new_color = Color::new_u32(*color);
                                 new_color.set_alpha((v * 255.0) as u8);
-                                self.backend.draw_pixel(
-                                    new_x,
-                                    new_y,
-                                    new_color.get_u32()
-                                );
+                                self.backend.draw_pixel(new_x, new_y, new_color.get_u32());
                             });
                         }
                     }

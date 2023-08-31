@@ -1,9 +1,9 @@
-use std::path::Path;
+use clover_ui::context::Context;
 use clover_ui::paint::{DrawingBackend, Painter};
 use clover_ui::style::{Color, FontManager, Spacing, StyleSheet};
 use clover_ui::ui::Ui;
 use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
-use clover_ui::context::Context;
+use std::path::Path;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
@@ -120,6 +120,12 @@ fn main() {
             ui.label("Profile");
             ui.label("This information will be displayed publicly so be careful what you share.");
         });
+
+        ui.flex(|ui| {
+            ui.button(|ui| {
+                ui.label("Save");
+            });
+        });
     });
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
@@ -155,6 +161,8 @@ fn main() {
             painter.draw();
         }
 
-        window.update_with_buffer(&backend.buffer, WIDTH, HEIGHT).unwrap();
+        window
+            .update_with_buffer(&backend.buffer, WIDTH, HEIGHT)
+            .unwrap();
     }
 }

@@ -1,16 +1,16 @@
-use crate::style::StyleSheet;
-use std::collections::{HashMap};
-use std::hash::Hash;
-use rusttype::Scale;
-use uuid::Uuid;
 use crate::event::Event;
-use crate::paint::{Drawable, Primitive};
 use crate::paint::Primitive::Rectangle;
+use crate::paint::{Drawable, Primitive};
+use crate::style::StyleSheet;
+use rusttype::Scale;
+use std::collections::HashMap;
+use std::hash::Hash;
+use uuid::Uuid;
 
 pub enum ElementType<'a> {
     Layout,
     Label(String),
-    TextEdit(&'a mut String)
+    TextEdit(&'a mut String),
 }
 
 impl<'a> Default for ElementType<'a> {
@@ -22,7 +22,7 @@ impl<'a> Default for ElementType<'a> {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum ElementState {
     Hovered,
-    Focused
+    Focused,
 }
 
 pub struct Element<'a> {
@@ -39,10 +39,7 @@ pub struct Element<'a> {
 }
 
 impl<'a> Element<'a> {
-    pub fn new(
-        ty: ElementType<'a>,
-        parent: Option<usize>,
-    ) -> Self {
+    pub fn new(ty: ElementType<'a>, parent: Option<usize>) -> Self {
         Self {
             uuid: Uuid::new_v4(),
             ty,
@@ -52,6 +49,10 @@ impl<'a> Element<'a> {
             children: vec![],
             states: Vec::new(),
         }
+    }
+
+    pub fn test(&mut self) {
+        println!("Hello");
     }
 
     pub fn style(&mut self) -> StyleSheet {
@@ -85,6 +86,8 @@ impl<'a> Element<'a> {
         self.states.contains(&ElementState::Hovered)
     }
 
+    pub fn on_click()
+
     pub fn handle_event(&mut self, event: &Event) {
         let curr_style = self.style();
         match event {
@@ -110,7 +113,9 @@ impl<'a> Element<'a> {
                     self.states.retain(|state| state != &ElementState::Hovered);
                 }
             }
-            Event::Click(_) => {}
+            Event::Click(btn) => {
+
+            }
             Event::MouseDown(_) => {}
             Event::MouseUp(_) => {}
         }
@@ -125,8 +130,12 @@ impl<'a> Drawable for Element<'a> {
         primitives.push(Rectangle {
             x: (style.get_x() + style.get_margin().left) as f32,
             y: (style.get_y() + style.get_margin().top) as f32,
-            width: (style.get_borderwidth().horizontal() + style.get_padding().horizontal() + style.get_width()) as f32,
-            height: (style.get_borderwidth().vertical() + style.get_padding().vertical() + style.get_height()) as f32,
+            width: (style.get_borderwidth().horizontal()
+                + style.get_padding().horizontal()
+                + style.get_width()) as f32,
+            height: (style.get_borderwidth().vertical()
+                + style.get_padding().vertical()
+                + style.get_height()) as f32,
             color: style.get_bordercolor().get_u32(),
         });
         primitives.push(Rectangle {
@@ -138,7 +147,7 @@ impl<'a> Drawable for Element<'a> {
         });
 
         match &self.ty {
-            ElementType::Layout  => {}
+            ElementType::Layout => {}
             ElementType::Label(value) => {
                 primitives.push(Primitive::Text {
                     x: style.get_content_x() as f32,
@@ -150,10 +159,8 @@ impl<'a> Drawable for Element<'a> {
                     content: value.clone(),
                     color: style.get_color().get_u32(),
                 });
-            },
-            ElementType::TextEdit(_) => {
-
             }
+            ElementType::TextEdit(_) => {}
         }
 
         primitives

@@ -1,4 +1,4 @@
-use crate::element::{ElementType};
+use crate::element::ElementType;
 use crate::style::{FlexDirection, FontManager, Layout};
 use crate::ui::Ui;
 use rusttype::{point, Scale};
@@ -75,17 +75,20 @@ impl<'a> Ui<'a> {
                     .layout(value, scale, point(0.0, 0.0 + v_metrics.ascent))
                     .collect();
 
-                (content_w, content_h) = ({
-                    let min_x = glyphs
-                        .first()
-                        .map(|g| g.pixel_bounding_box().unwrap().min.x)
-                        .unwrap();
-                    let max_x = glyphs
-                        .last()
-                        .map(|g| g.pixel_bounding_box().unwrap().max.x)
-                        .unwrap();
-                    (max_x - min_x) as usize
-                }, (v_metrics.ascent - v_metrics.descent).ceil() as usize)
+                (content_w, content_h) = (
+                    {
+                        let min_x = glyphs
+                            .first()
+                            .map(|g| g.pixel_bounding_box().unwrap().min.x)
+                            .unwrap();
+                        let max_x = glyphs
+                            .last()
+                            .map(|g| g.pixel_bounding_box().unwrap().max.x)
+                            .unwrap();
+                        (max_x - min_x) as usize
+                    },
+                    (v_metrics.ascent - v_metrics.descent).ceil() as usize,
+                )
             }
             _ => {}
         };
@@ -105,18 +108,24 @@ impl<'a> Ui<'a> {
         }
 
         let (mut new_dx, mut new_dy) = match self.dom_tree[element_idx].style.get_display() {
-            Layout::Block => (self.dom_tree[element_idx].style.get_content_x(), self.dom_tree[element_idx].style.get_content_y()),
+            Layout::Block => (
+                self.dom_tree[element_idx].style.get_content_x(),
+                self.dom_tree[element_idx].style.get_content_y(),
+            ),
             Layout::Flex { flex_direction, .. } => match flex_direction {
-                FlexDirection::Row | FlexDirection::Col => {
-                    (self.dom_tree[element_idx].style.get_content_x(), self.dom_tree[element_idx].style.get_content_y())
-                }
+                FlexDirection::Row | FlexDirection::Col => (
+                    self.dom_tree[element_idx].style.get_content_x(),
+                    self.dom_tree[element_idx].style.get_content_y(),
+                ),
                 FlexDirection::RowReverse => (
-                    self.dom_tree[element_idx].style.get_content_x() + self.dom_tree[element_idx].style.get_width(),
+                    self.dom_tree[element_idx].style.get_content_x()
+                        + self.dom_tree[element_idx].style.get_width(),
                     self.dom_tree[element_idx].style.get_content_y(),
                 ),
                 FlexDirection::ColReverse => (
                     self.dom_tree[element_idx].style.get_content_x(),
-                    self.dom_tree[element_idx].style.get_content_y() + self.dom_tree[element_idx].style.get_height(),
+                    self.dom_tree[element_idx].style.get_content_y()
+                        + self.dom_tree[element_idx].style.get_height(),
                 ),
             },
             _ => (0, 0),
