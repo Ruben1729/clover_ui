@@ -7,6 +7,8 @@ pub enum StyleProperty {
     Margin(Spacing),
     BorderColor(Color),
     BorderWidth(Spacing),
+    OutlineColor(Color),
+    OutlineWidth(Spacing),
     Height(usize),
     Width(usize),
     X(usize),

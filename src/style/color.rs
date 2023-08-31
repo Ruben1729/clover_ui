@@ -4,6 +4,11 @@ pub struct Color {
 }
 
 impl Color {
+    pub const fn create_const(a: u8, r: u8, g: u8, b: u8) -> Self {
+        let value = ((a as u32) << 24) | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
+        Self { value }
+    }
+
     pub fn new(a: u8, r: u8, g: u8, b: u8) -> Self {
         let value = ((a as u32) << 24) | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
         Self { value }

@@ -60,7 +60,6 @@ impl Ui {
         let node_type = match node.borrow().ty {
             ElementType::Layout => "Layout",
             ElementType::Label(_) => "Label",
-            ElementType::Button => "Button",
         };
 
         println!(
@@ -80,7 +79,7 @@ impl Ui {
     }
 
     fn _generate_draw_calls(element: Rc<RefCell<Element>>) -> Vec<Primitive> {
-        let mut draw_calls = element.borrow().draw();
+        let mut draw_calls = element.borrow_mut().draw();
 
         for child in element.borrow().children.iter() {
             draw_calls.extend(Ui::_generate_draw_calls(child.clone()));

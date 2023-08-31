@@ -38,6 +38,8 @@ impl StyleSheet {
                 | StylePropertyKey::Margin
                 | StylePropertyKey::BorderColor
                 | StylePropertyKey::BorderWidth
+                | StylePropertyKey::OutlineColor
+                | StylePropertyKey::OutlineWidth
                 | StylePropertyKey::Height
                 | StylePropertyKey::Width
                 | StylePropertyKey::X

@@ -113,11 +113,18 @@ fn main() {
     text_ss.set_padding(Spacing::uniform(10));
     text_ss.set_backgroundcolor(Color::new(255, 250, 250, 250));
     text_ss.set_color(Color::new(255, 20, 20, 20));
-    text_ss.set_fontsize(22.4);
+    text_ss.set_fontsize(15.4);
 
     ui.with_style_sheet(text_ss).flex(|ui| {
         ui.flex(|ui| {
-            ui.label("Profile");
+            ui.h2("Profile");
+            ui.p("This information will be displayed publicly so be careful what you share.");
+        });
+
+        ui.flex(|ui| {
+            ui.button(|ui| {
+                ui.label("Save");
+            });
         });
     });
 
