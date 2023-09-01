@@ -6,9 +6,6 @@ pub enum Event {
     KeyUp(Key),
 
     MouseScroll(Option<(f32, f32)>),
-
-    MouseEnter,
-    MouseLeave,
     MouseMove(Option<(f32, f32)>),
 
     Click(MouseButton),

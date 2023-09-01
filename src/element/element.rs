@@ -1,16 +1,28 @@
-use crate::event::Event;
+use std::collections::HashMap;
 use crate::paint::Primitive::Rectangle;
 use crate::paint::{Drawable, Primitive};
 use crate::style::StyleSheet;
 use rusttype::Scale;
-use std::collections::HashMap;
 use std::hash::Hash;
 use uuid::Uuid;
+use crate::element::{ElementState, ElementStateManager};
+use crate::event::Event;
 
+#[derive(Debug)]
 pub enum ElementType<'a> {
     Layout,
-    Label(String),
-    TextEdit(&'a mut String),
+    Label(&'a str),
+    TextInput(&'a mut String),
+}
+
+impl<'a> ElementType<'a> {
+    pub fn to_key(&self) -> &str {
+        match self {
+            ElementType::Layout =>          "lay",
+            ElementType::Label(_) =>        "lab",
+            ElementType::TextInput(_) =>    "inp"
+        }
+    }
 }
 
 impl<'a> Default for ElementType<'a> {
@@ -19,40 +31,23 @@ impl<'a> Default for ElementType<'a> {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
-pub enum ElementState {
-    Hovered,
-    Focused,
-}
-
 pub struct Element<'a> {
     uuid: Uuid,
-
     pub ty: ElementType<'a>,
     pub style: StyleSheet,
-    pub state_style: HashMap<ElementState, StyleSheet>,
-
-    parent: Option<usize>,
-    pub children: Vec<usize>,
-
-    pub states: Vec<ElementState>,
+    pub state_manager: ElementStateManager,
+    pub state_style: HashMap<ElementState, StyleSheet>
 }
 
 impl<'a> Element<'a> {
-    pub fn new(ty: ElementType<'a>, parent: Option<usize>) -> Self {
+    pub fn new(ty: ElementType<'a>) -> Self {
         Self {
             uuid: Uuid::new_v4(),
             ty,
             style: StyleSheet::new(),
-            state_style: HashMap::new(),
-            parent,
-            children: vec![],
-            states: Vec::new(),
+            state_manager: Default::default(),
+            state_style: Default::default()
         }
-    }
-
-    pub fn test(&mut self) {
-        println!("Hello");
     }
 
     pub fn style(&mut self) -> StyleSheet {
@@ -63,7 +58,7 @@ impl<'a> Element<'a> {
             new_style.insert(val.clone());
         }
 
-        for state in &self.states {
+        for state in &self.state_manager.states {
             if let Some(style) = self.state_style.get(state) {
                 for (_, val) in style.values.iter() {
                     new_style.insert(val.clone());
@@ -78,39 +73,22 @@ impl<'a> Element<'a> {
         self.uuid
     }
 
-    pub fn add_child(&mut self, child: usize) {
-        self.children.push(child);
-    }
-
-    pub fn is_hovered(&self) -> bool {
-        self.states.contains(&ElementState::Hovered)
-    }
-
-    pub fn on_click()
-
     pub fn handle_event(&mut self, event: &Event) {
         let curr_style = self.style();
         match event {
             Event::KeyDown(_) => {}
             Event::KeyUp(_) => {}
             Event::MouseScroll(_) => {}
-            Event::MouseEnter => {}
-            Event::MouseLeave => {}
             Event::MouseMove(move_event) => {
                 if let Some(position) = move_event {
                     if position.0 > curr_style.get_x() as f32
                         && position.0 < (curr_style.get_x() + curr_style.get_total_width()) as f32
                         && position.1 > curr_style.get_y() as f32
-                        && position.1 < (curr_style.get_y() + curr_style.get_total_height()) as f32
-                    {
-                        if !self.states.contains(&ElementState::Hovered) {
-                            self.states.push(ElementState::Hovered);
-                        }
-                    } else {
-                        self.states.retain(|state| state != &ElementState::Hovered);
+                        && position.1 < (curr_style.get_y() + curr_style.get_total_height()) as f32 {
+                        self.state_manager.push(ElementState::Hovered);
                     }
                 } else {
-                    self.states.retain(|state| state != &ElementState::Hovered);
+                    self.state_manager.remove(ElementState::Hovered);
                 }
             }
             Event::Click(btn) => {
@@ -146,7 +124,7 @@ impl<'a> Drawable for Element<'a> {
             color: style.get_backgroundcolor().get_u32(),
         });
 
-        match &self.ty {
+        match self.ty {
             ElementType::Layout => {}
             ElementType::Label(value) => {
                 primitives.push(Primitive::Text {
@@ -156,11 +134,11 @@ impl<'a> Drawable for Element<'a> {
                         x: style.get_fontsize(),
                         y: style.get_fontsize(),
                     },
-                    content: value.clone(),
+                    content: value.to_string(),
                     color: style.get_color().get_u32(),
                 });
             }
-            ElementType::TextEdit(_) => {}
+            ElementType::TextInput(_) => {}
         }
 
         primitives

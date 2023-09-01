@@ -92,6 +92,7 @@ fn main() {
             )
             .expect("Unable to load font");
     }
+
     let mut window = Window::new(
         "Test - ESC to exit",
         WIDTH,
@@ -106,60 +107,45 @@ fn main() {
     });
 
     let mut backend = MiniFbBackend::new();
-    let mut context = Context::default();
     let mut ui = Ui::default();
-
-    let mut text_ss = StyleSheet::new();
-    text_ss.set_padding(Spacing::uniform(10));
-    text_ss.set_backgroundcolor(Color::new(255, 250, 250, 250));
-    text_ss.set_color(Color::new(255, 20, 20, 20));
-    text_ss.set_fontsize(15.4);
-
-    ui.with_style_sheet(text_ss).flex(|ui| {
-        ui.flex(|ui| {
-            ui.label("Profile");
-            ui.label("This information will be displayed publicly so be careful what you share.");
-        });
-
-        ui.flex(|ui| {
-            ui.button(|ui| {
-                ui.label("Save");
-            });
-        });
-    });
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         backend.clear();
 
         if window.get_mouse_down(minifb::MouseButton::Left) {
-            context.set_mouse_pressed(clover_ui::state::MouseButton::Left);
+            ui.context.set_mouse_pressed(clover_ui::state::MouseButton::Left);
         }
         if window.get_mouse_down(minifb::MouseButton::Right) {
-            context.set_mouse_pressed(clover_ui::state::MouseButton::Right);
+            ui.context.set_mouse_pressed(clover_ui::state::MouseButton::Right);
         }
         if window.get_mouse_down(minifb::MouseButton::Middle) {
-            context.set_mouse_pressed(clover_ui::state::MouseButton::Middle);
+            ui.context.set_mouse_pressed(clover_ui::state::MouseButton::Middle);
         }
 
-        context.set_mouse_pos(window.get_unscaled_mouse_pos(MouseMode::Discard));
-        context.set_mouse_scroll(window.get_scroll_wheel());
+        ui.context.set_mouse_pos(window.get_unscaled_mouse_pos(MouseMode::Discard));
+        ui.context.set_mouse_scroll(window.get_scroll_wheel());
 
         // Updates the state and generates events
-        context.next();
-        {
-            ui.compute_dimensions();
-            ui.compute_positions();
-            while !context.event_queue.is_empty() {
-                let event = context.event_queue.remove(0);
-                ui.dispatch_event(&event);
-            }
-        }
+        ui.context.next();
+
+        let mut text_ss = StyleSheet::new();
+        text_ss.set_color(Color::new(255, 20, 20, 20));
+        text_ss.set_fontsize(15.4);
+
+        ui.with_style_sheet(text_ss).flex_col(|ui| {
+            ui.flex_col(|ui| {
+                ui.label("Save");
+                ui.label("Cancel");
+            });
+        });
 
         {
             let mut painter = Painter::new(&mut backend);
-            painter.extend(ui.generate_draw_calls());
+            painter.extend(ui.draw_calls.clone());
             painter.draw();
         }
+
+        ui.clear();
 
         window
             .update_with_buffer(&backend.buffer, WIDTH, HEIGHT)

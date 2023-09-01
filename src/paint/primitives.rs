@@ -1,5 +1,6 @@
 use rusttype::Scale;
 
+#[derive(Debug, Clone)]
 pub enum Primitive {
     Circle {
         x: f32,

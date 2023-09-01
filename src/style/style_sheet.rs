@@ -44,7 +44,6 @@ impl StyleSheet {
                 | StylePropertyKey::Width
                 | StylePropertyKey::X
                 | StylePropertyKey::Y
-                | StylePropertyKey::Display
                 | StylePropertyKey::BackgroundColor => {}
                 StylePropertyKey::Color
                 | StylePropertyKey::FontFamily

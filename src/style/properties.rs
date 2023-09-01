@@ -15,7 +15,6 @@ pub enum StyleProperty {
     Y(usize),
     BackgroundColor(Color),
     Color(Color),
-    Display(Layout),
     FontFamily(Option<String>),
     FontSize(f32),
 }
