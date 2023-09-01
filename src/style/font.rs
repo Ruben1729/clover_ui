@@ -6,10 +6,29 @@ use std::io::Read;
 use std::path::Path;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum FontWeight {
+    Thin        = 100,
+    ExtraLight  = 200,
+    Light       = 300,
+    Regular     = 400,
+    Medium      = 500,
+    SemiBold    = 600,
+    Bold        = 700,
+    ExtraBold   = 800,
+    Black       = 900
+}
+
+impl Default for FontWeight {
+    fn default() -> Self {
+        FontWeight::Regular
+    }
+}
+
 #[derive(Default)]
 pub struct FontManager {
-    db: HashMap<&'static str, Font<'static>>,
-    default: Option<Font<'static>>,
+    db: HashMap<&'static str, HashMap<FontWeight, Font<'static>>>,
+    default: HashMap<FontWeight, Font<'static>>,
 }
 
 lazy_static! {
@@ -27,6 +46,7 @@ impl FontManager {
     pub fn load(
         &mut self,
         name_opt: Option<&'static str>,
+        font_weight: FontWeight,
         path: &Path,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut buffer = Vec::new();
@@ -37,19 +57,20 @@ impl FontManager {
         let font = Font::try_from_bytes(static_buffer).expect("Unable to load font.");
 
         if let Some(name) = name_opt {
-            self.db.insert(name, font);
+            let weight_map = self.db.entry(name).or_insert_with(HashMap::new);
+            weight_map.insert(font_weight, font);
         } else {
-            self.default = Some(font);
+            self.default.insert(font_weight, font);
         }
 
         Ok(())
     }
 
-    pub fn get_font(&self, key_opt: &Option<String>) -> Option<&Font> {
+    pub fn get_font(&self, key_opt: Option<&String>, font_weight: FontWeight) -> Option<&Font> {
         if let Some(key) = key_opt {
-            self.db.get(key.as_str())
+            self.db.get(key.as_str())?.get(&font_weight)
         } else {
-            self.default.as_ref()
+            self.default.get(&font_weight)
         }
     }
 }

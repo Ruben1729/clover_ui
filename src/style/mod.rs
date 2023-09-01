@@ -1,5 +1,5 @@
 mod color;
-mod font_manager;
+mod font;
 mod layout;
 mod presets;
 mod properties;
@@ -7,7 +7,7 @@ mod spacing;
 mod style_sheet;
 
 pub use self::color::*;
-pub use self::font_manager::*;
+pub use self::font::*;
 pub use self::layout::*;
 pub use self::presets::*;
 pub use self::properties::*;

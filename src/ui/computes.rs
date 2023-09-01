@@ -1,5 +1,5 @@
 use crate::element::{Element, ElementType};
-use crate::style::{FontManager};
+use crate::style::{FontManager, FontWeight};
 use crate::ui::Ui;
 use rusttype::{point, Scale};
 
@@ -21,7 +21,7 @@ impl Ui {
         if let ElementType::Label(value) = element.ty {
             let manager = FontManager::get();
             let font = manager
-                .get_font(&element.style.get_fontfamily())
+                .get_font(None, FontWeight::Bold)
                 .expect("Unable to load font");
 
             let scale = Scale::uniform(element.style.get_fontsize());

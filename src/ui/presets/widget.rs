@@ -4,6 +4,9 @@ use crate::paint::Drawable;
 use crate::ui::Ui;
 
 impl Ui {
+    pub fn create_widget(&mut self) {
+
+    }
     pub fn label(&mut self, value: &str) {
         let mut new_element = Element::new(Label(value));
 

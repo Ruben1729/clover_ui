@@ -1,5 +1,5 @@
 use clover_ui::paint::{DrawingBackend, Painter};
-use clover_ui::style::{Color, COLOR_GRAY_600, COLOR_WHITE, FontManager, StyleSheet};
+use clover_ui::style::{Color, COLOR_GRAY_600, COLOR_WHITE, FontManager, FontWeight, StyleSheet};
 use clover_ui::ui::Ui;
 use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
 use std::path::Path;
@@ -87,7 +87,15 @@ fn main() {
         font_manager
             .load(
                 None,
-                Path::new("/run/media/rubens/ssd/projects/clover_ui/inter.ttf"),
+                FontWeight::Bold,
+                Path::new("assets/Inter-Bold.ttf"),
+            )
+            .expect("Unable to load font");
+        font_manager
+            .load(
+                None,
+                FontWeight::Regular,
+                Path::new("assets/Inter-Regular.ttf"),
             )
             .expect("Unable to load font");
     }
@@ -109,7 +117,7 @@ fn main() {
     let mut theme = StyleSheet::new();
     theme.set_backgroundcolor(COLOR_WHITE);
     theme.set_color(COLOR_GRAY_600);
-    theme.set_fontsize(14.0);
+    theme.set_fontsize(19.0);
 
     let mut ui = Ui::default();
     ui.with_style_sheet(theme);

@@ -1,5 +1,5 @@
 use crate::paint::Primitive;
-use crate::style::Color;
+use crate::style::{Color, FontManager, FontWeight};
 use rusttype::{point, Font};
 
 // Define a trait for the drawing backend
@@ -12,17 +12,13 @@ pub trait DrawingBackend {
 pub struct Painter<'a> {
     draw_calls: Vec<Primitive>,
     backend: &'a mut dyn DrawingBackend,
-    font: Font<'static>,
 }
 
 impl<'a> Painter<'a> {
     pub fn new(backend: &'a mut dyn DrawingBackend) -> Self {
-        let font_data = include_bytes!("/run/media/rubens/ssd/projects/clover_ui/inter.ttf");
-        let font = Font::try_from_bytes(font_data as &[u8]).unwrap();
         Painter {
             draw_calls: Vec::new(),
             backend,
-            font,
         }
     }
 
@@ -70,11 +66,15 @@ impl<'a> Painter<'a> {
                     content,
                     color,
                 } => {
-                    let v_metrics = self.font.v_metrics(*scale);
+                    let manager = FontManager::get();
+                    let font = manager
+                        .get_font(None, FontWeight::Bold)
+                        .expect("Unable to load font");
+
+                    let v_metrics = font.v_metrics(*scale);
 
                     // layout the glyphs in a line with 20 pixels padding
-                    let glyphs: Vec<_> = self
-                        .font
+                    let glyphs: Vec<_> = font
                         .layout(content, *scale, point(*x, *y + v_metrics.ascent))
                         .collect();
 

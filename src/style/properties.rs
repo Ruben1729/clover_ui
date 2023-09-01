@@ -1,4 +1,4 @@
-use crate::style::{Color, Layout, Spacing};
+use crate::style::{Color, FontWeight, Spacing};
 use enum2map::Enum2Map;
 
 #[derive(Debug, Clone, Enum2Map)]
@@ -15,6 +15,7 @@ pub enum StyleProperty {
     Y(usize),
     BackgroundColor(Color),
     Color(Color),
+    FontWeight(FontWeight),
     FontFamily(Option<String>),
     FontSize(f32),
 }

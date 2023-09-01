@@ -53,7 +53,8 @@ impl Ui {
         let mut new_element = Element::new(ElementType::Container(Layout {
             flex_direction: FlexDirection::Col
         }));
-
+        // TODO: we unbind here so that the page (which is the base) doesn't have their styles unbinded as
+        // all it's children should inherit from it.
         self.create_layout(&mut new_element, add_contents);
         self.unbind_styles(new_element.uuid());
     }
