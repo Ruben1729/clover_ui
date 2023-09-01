@@ -1,6 +1,5 @@
-use clover_ui::context::Context;
 use clover_ui::paint::{DrawingBackend, Painter};
-use clover_ui::style::{Color, FontManager, Spacing, StyleSheet};
+use clover_ui::style::{Color, COLOR_GRAY_600, COLOR_WHITE, FontManager, StyleSheet};
 use clover_ui::ui::Ui;
 use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
 use std::path::Path;
@@ -107,7 +106,13 @@ fn main() {
     });
 
     let mut backend = MiniFbBackend::new();
+    let mut theme = StyleSheet::new();
+    theme.set_backgroundcolor(COLOR_WHITE);
+    theme.set_color(COLOR_GRAY_600);
+    theme.set_fontsize(14.0);
+
     let mut ui = Ui::default();
+    ui.with_style_sheet(theme);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         backend.clear();
@@ -128,14 +133,12 @@ fn main() {
         // Updates the state and generates events
         ui.context.next();
 
-        let mut text_ss = StyleSheet::new();
-        text_ss.set_color(Color::new(255, 20, 20, 20));
-        text_ss.set_fontsize(15.4);
-
-        ui.with_style_sheet(text_ss).flex_col(|ui| {
+        ui.page(|ui| {
             ui.flex_col(|ui| {
-                ui.label("Save");
-                ui.label("Cancel");
+                ui.flex_col(|ui| {
+                    ui.label("Save");
+                    ui.label("Cancel");
+                });
             });
         });
 

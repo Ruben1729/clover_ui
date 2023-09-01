@@ -2,6 +2,7 @@
 pub enum ElementState {
     Hovered,
     Focused,
+    MouseDown,
     Clicked
 }
 
@@ -32,7 +33,7 @@ impl ElementStateManager {
         self.states.retain(|s| *s != state);
     }
 
-    pub fn is(&self, state: ElementState) -> bool {
+    pub fn contains(&self, state: ElementState) -> bool {
         self.states.contains(&state)
     }
 }

@@ -30,31 +30,34 @@ impl Context {
         }
 
         // MOUSE DOWN & UP EVENT
-        for button in &self.curr_state.mouse.pressed {
-            self.event_queue.push(Event::MouseDown(button.clone()));
-            if !self.prev_state.mouse.pressed.contains(button) {
-                self.event_queue.push(Event::Click(button.clone()));
-            }
+        for btn in &self.curr_state.mouse.pressed {
+            self.event_queue.push(Event::MouseDown {
+                state: self.curr_state.mouse.clone(),
+                button: btn.clone()
+            });
         }
         self.prev_state
             .mouse
             .pressed
             .retain(|key| !self.curr_state.mouse.pressed.contains(key));
 
-        for button in &self.prev_state.mouse.pressed {
-            self.event_queue.push(Event::MouseUp(button.clone()));
+        for btn in &self.prev_state.mouse.pressed {
+            self.event_queue.push(Event::MouseUp{
+                state: self.curr_state.mouse.clone(),
+                button: btn.clone()
+            });
         }
 
         // MOUSE MOVE
         if self.curr_state.mouse.pos != self.prev_state.mouse.pos {
             self.event_queue
-                .push(Event::MouseMove(self.curr_state.mouse.pos));
+                .push(Event::MouseMove(self.curr_state.mouse.clone()));
         }
 
         // MOUSE SCROLL
         if self.curr_state.mouse.scroll_wheel != self.prev_state.mouse.scroll_wheel {
             self.event_queue
-                .push(Event::MouseScroll(self.curr_state.mouse.scroll_wheel));
+                .push(Event::MouseScroll(self.curr_state.mouse.clone()));
         }
 
         // SWAP STATES AND CLEAR CURRENT STATE TO USE FOR RECORDING

@@ -1,14 +1,19 @@
-use crate::state::{Key, MouseButton};
+use crate::state::{Key, MouseButton, MouseState};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Event {
     KeyDown(Key),
     KeyUp(Key),
 
-    MouseScroll(Option<(f32, f32)>),
-    MouseMove(Option<(f32, f32)>),
+    MouseScroll(MouseState),
+    MouseMove(MouseState),
 
-    Click(MouseButton),
-    MouseDown(MouseButton),
-    MouseUp(MouseButton),
+    MouseDown {
+        state: MouseState,
+        button: MouseButton
+    },
+    MouseUp {
+        state: MouseState,
+        button: MouseButton
+    },
 }

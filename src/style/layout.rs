@@ -11,3 +11,9 @@ impl Default for FlexDirection {
         FlexDirection::Row
     }
 }
+
+#[derive(Debug, Default, Clone)]
+pub struct Layout {
+    pub(crate) flex_direction: FlexDirection
+}
+

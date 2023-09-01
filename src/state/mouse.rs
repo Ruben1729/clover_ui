@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Debug, Default, Clone)]
 pub struct MouseState {
     pub pressed: Vec<MouseButton>,
     pub pos: Option<(f32, f32)>,

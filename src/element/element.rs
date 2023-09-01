@@ -1,33 +1,24 @@
 use std::collections::HashMap;
 use crate::paint::Primitive::Rectangle;
 use crate::paint::{Drawable, Primitive};
-use crate::style::StyleSheet;
+use crate::style::{Layout, StyleSheet};
 use rusttype::Scale;
 use std::hash::Hash;
 use uuid::Uuid;
 use crate::element::{ElementState, ElementStateManager};
 use crate::event::Event;
+use crate::state::MouseButton;
 
 #[derive(Debug)]
 pub enum ElementType<'a> {
-    Layout,
+    Container(Layout),
     Label(&'a str),
     TextInput(&'a mut String),
 }
 
-impl<'a> ElementType<'a> {
-    pub fn to_key(&self) -> &str {
-        match self {
-            ElementType::Layout =>          "lay",
-            ElementType::Label(_) =>        "lab",
-            ElementType::TextInput(_) =>    "inp"
-        }
-    }
-}
-
 impl<'a> Default for ElementType<'a> {
     fn default() -> Self {
-        ElementType::Layout
+        ElementType::Container(Layout::default())
     }
 }
 
@@ -75,28 +66,60 @@ impl<'a> Element<'a> {
 
     pub fn handle_event(&mut self, event: &Event) {
         let curr_style = self.style();
+
         match event {
             Event::KeyDown(_) => {}
             Event::KeyUp(_) => {}
             Event::MouseScroll(_) => {}
-            Event::MouseMove(move_event) => {
-                if let Some(position) = move_event {
-                    if position.0 > curr_style.get_x() as f32
-                        && position.0 < (curr_style.get_x() + curr_style.get_total_width()) as f32
-                        && position.1 > curr_style.get_y() as f32
-                        && position.1 < (curr_style.get_y() + curr_style.get_total_height()) as f32 {
+            Event::MouseMove(state) => {
+                if let Some((x, y)) = state.pos {
+                    if self.cursor_in_bounds(x, y){
                         self.state_manager.push(ElementState::Hovered);
+                    } else {
+                        self.state_manager.remove(ElementState::Hovered);
                     }
                 } else {
                     self.state_manager.remove(ElementState::Hovered);
                 }
             }
-            Event::Click(btn) => {
-
+            Event::MouseDown{
+                state,
+                ..
+            } => {
+                if let Some(position) = state.pos {
+                    if self.cursor_in_bounds(position.0, position.1) {
+                        self.state_manager.push(ElementState::MouseDown);
+                    }
+                } else {
+                    self.state_manager.remove(ElementState::MouseDown);
+                }
             }
-            Event::MouseDown(_) => {}
-            Event::MouseUp(_) => {}
+            Event::MouseUp{
+                state,
+                button
+            } => {
+                match button {
+                    MouseButton::Left => {
+                        if let Some((x, y)) = state.pos {
+                            if self.cursor_in_bounds(x, y) {
+                                self.state_manager.push(ElementState::Clicked);
+                            }
+                        }
+                    }
+                    MouseButton::Middle => {}
+                    MouseButton::Right => {}
+                }
+                self.state_manager.remove(ElementState::MouseDown);
+            }
         }
+    }
+
+    pub fn cursor_in_bounds(&mut self, x: f32, y: f32) -> bool {
+        let curr_style = self.style();
+        x > curr_style.get_x() as f32
+            && x < (curr_style.get_x() + curr_style.get_total_width()) as f32
+            && y > curr_style.get_y() as f32
+            && y < (curr_style.get_y() + curr_style.get_total_height()) as f32
     }
 }
 
@@ -125,7 +148,7 @@ impl<'a> Drawable for Element<'a> {
         });
 
         match self.ty {
-            ElementType::Layout => {}
+            ElementType::Container(_) => {}
             ElementType::Label(value) => {
                 primitives.push(Primitive::Text {
                     x: style.get_content_x() as f32,

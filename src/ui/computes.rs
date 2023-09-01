@@ -4,6 +4,19 @@ use crate::ui::Ui;
 use rusttype::{point, Scale};
 
 impl Ui {
+    pub fn dispatch_events(&mut self, new_element: &mut Element) {
+        self.running_counter += 1;
+
+        if self.context.event_queue.len() > 0 {
+            for event in &self.context.event_queue {
+                new_element.handle_event(event);
+            }
+
+            self.persistent_element_state.insert(self.running_counter, new_element.state_manager.clone());
+        } else if let Some(state_manager) = self.persistent_element_state.get(&self.running_counter) {
+            new_element.state_manager = state_manager.clone();
+        }
+    }
     pub fn compute_text_dimensions(&self, element: &mut Element) {
         if let ElementType::Label(value) = element.ty {
             let manager = FontManager::get();

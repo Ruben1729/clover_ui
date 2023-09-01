@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Debug, Default, Clone)]
 pub struct KeyState {
     pub pressed: Vec<Key>,
 }
