@@ -1,27 +1,56 @@
-use crate::element::{Element, ElementType};
-use crate::style::{FontManager, FontWeight};
+use crate::element::{Element, ElementState, ElementStateManager, ElementType};
+use crate::style::{FontManager};
 use crate::ui::Ui;
 use rusttype::{point, Scale};
+use crate::event::Event;
 
 impl Ui {
     pub fn dispatch_events(&mut self, new_element: &mut Element) {
         self.running_counter += 1;
+        let mut element_state = self.persistent_element_state.entry(self.running_counter).or_insert_with(ElementStateManager::default);
 
-        if self.context.event_queue.len() > 0 {
-            for event in &self.context.event_queue {
-                new_element.handle_event(event);
+        for event in &self.context.event_queue {
+            match event {
+                Event::KeyDown(_) => {}
+                Event::KeyUp(_) => {}
+                Event::MouseScroll(_) => {}
+                Event::MouseMove(state) => {
+                    if let Some((x, y)) = state.pos {
+                        if new_element.cursor_in_bounds(x, y) {
+                            element_state.push(ElementState::Hovered);
+                        } else {
+                            element_state.remove(ElementState::Hovered);
+                        }
+                    } else {
+                        element_state.remove(ElementState::Hovered);
+                    }
+                }
+                Event::MouseDown { state, .. } => {
+                    if let Some(position) = state.pos {
+                        if new_element.cursor_in_bounds(position.0, position.1) {
+                            element_state.push(ElementState::MouseDown);
+                        }
+                    }
+                }
+                Event::MouseUp { state, button } => {
+                    if let Some(position) = state.pos {
+                        if new_element.cursor_in_bounds(position.0, position.1) {
+                            element_state.push(ElementState::Clicked);
+                        }
+                    }
+                }
             }
+        }
 
-            self.persistent_element_state.insert(self.running_counter, new_element.state_manager.clone());
-        } else if let Some(state_manager) = self.persistent_element_state.get(&self.running_counter) {
-            new_element.state_manager = state_manager.clone();
+        for new_state in &element_state.states {
+            new_element.state_manager.push(new_state.clone());
         }
     }
     pub fn compute_text_dimensions(&self, element: &mut Element) {
         if let ElementType::Label(value) = element.ty {
             let manager = FontManager::get();
             let font = manager
-                .get_font(None, FontWeight::Bold)
+                .get_font(None, element.style.get_fontweight())
                 .expect("Unable to load font");
 
             let scale = Scale::uniform(element.style.get_fontsize());

@@ -10,10 +10,10 @@ pub enum Event {
 
     MouseDown {
         state: MouseState,
-        button: MouseButton
+        button: MouseButton,
     },
     MouseUp {
         state: MouseState,
-        button: MouseButton
+        button: MouseButton,
     },
 }

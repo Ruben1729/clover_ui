@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-use crate::paint::Primitive::Rectangle;
-use crate::paint::{Drawable, Primitive};
-use crate::style::{Layout, StyleSheet};
-use rusttype::Scale;
-use std::hash::Hash;
-use uuid::Uuid;
 use crate::element::{ElementState, ElementStateManager};
 use crate::event::Event;
+use crate::paint::Primitive::Rectangle;
+use crate::paint::{Drawable, Primitive};
 use crate::state::MouseButton;
+use crate::style::{Layout, StyleSheet};
+use std::collections::HashMap;
+use std::hash::Hash;
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub enum ElementType<'a> {
@@ -27,7 +26,7 @@ pub struct Element<'a> {
     pub ty: ElementType<'a>,
     pub style: StyleSheet,
     pub state_manager: ElementStateManager,
-    pub state_style: HashMap<ElementState, StyleSheet>
+    pub state_style: HashMap<ElementState, StyleSheet>,
 }
 
 impl<'a> Element<'a> {
@@ -37,7 +36,7 @@ impl<'a> Element<'a> {
             ty,
             style: StyleSheet::new(),
             state_manager: Default::default(),
-            state_style: Default::default()
+            state_style: Default::default(),
         }
     }
 
@@ -65,15 +64,13 @@ impl<'a> Element<'a> {
     }
 
     pub fn handle_event(&mut self, event: &Event) {
-        let curr_style = self.style();
-
         match event {
             Event::KeyDown(_) => {}
             Event::KeyUp(_) => {}
             Event::MouseScroll(_) => {}
             Event::MouseMove(state) => {
                 if let Some((x, y)) = state.pos {
-                    if self.cursor_in_bounds(x, y){
+                    if self.cursor_in_bounds(x, y) {
                         self.state_manager.push(ElementState::Hovered);
                     } else {
                         self.state_manager.remove(ElementState::Hovered);
@@ -82,10 +79,7 @@ impl<'a> Element<'a> {
                     self.state_manager.remove(ElementState::Hovered);
                 }
             }
-            Event::MouseDown{
-                state,
-                ..
-            } => {
+            Event::MouseDown { state, .. } => {
                 if let Some(position) = state.pos {
                     if self.cursor_in_bounds(position.0, position.1) {
                         self.state_manager.push(ElementState::MouseDown);
@@ -94,20 +88,17 @@ impl<'a> Element<'a> {
                     self.state_manager.remove(ElementState::MouseDown);
                 }
             }
-            Event::MouseUp{
-                state,
-                button
-            } => {
-                match button {
-                    MouseButton::Left => {
-                        if let Some((x, y)) = state.pos {
-                            if self.cursor_in_bounds(x, y) {
+            Event::MouseUp { state, button } => {
+                if let Some((x, y)) = state.pos {
+                    if self.cursor_in_bounds(x, y) {
+                        match button {
+                            MouseButton::Left => {
                                 self.state_manager.push(ElementState::Clicked);
                             }
+                            MouseButton::Middle => {}
+                            MouseButton::Right => {}
                         }
                     }
-                    MouseButton::Middle => {}
-                    MouseButton::Right => {}
                 }
                 self.state_manager.remove(ElementState::MouseDown);
             }
@@ -153,10 +144,8 @@ impl<'a> Drawable for Element<'a> {
                 primitives.push(Primitive::Text {
                     x: style.get_content_x() as f32,
                     y: style.get_content_y() as f32,
-                    scale: Scale {
-                        x: style.get_fontsize(),
-                        y: style.get_fontsize(),
-                    },
+                    font_weight: style.get_fontweight(),
+                    font_size: style.get_fontsize(),
                     content: value.to_string(),
                     color: style.get_color().get_u32(),
                 });

@@ -3,12 +3,12 @@ pub enum ElementState {
     Hovered,
     Focused,
     MouseDown,
-    Clicked
+    Clicked,
 }
 
 #[derive(Default, Clone)]
 pub struct ElementStateManager {
-    pub states: Vec<ElementState>
+    pub states: Vec<ElementState>,
 }
 
 impl ElementStateManager {
@@ -35,5 +35,21 @@ impl ElementStateManager {
 
     pub fn contains(&self, state: ElementState) -> bool {
         self.states.contains(&state)
+    }
+
+    pub fn next(&mut self, state: &ElementState) {
+
+    }
+
+    pub fn is_clicked(&self) -> bool {
+        self.contains(ElementState::Clicked)
+    }
+
+    pub fn is_hovered(&self) {
+        self.contains(ElementState::Hovered);
+    }
+
+    pub fn is_focused(&self) {
+        self.contains(ElementState::Focused);
     }
 }

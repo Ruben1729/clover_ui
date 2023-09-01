@@ -33,7 +33,7 @@ impl Context {
         for btn in &self.curr_state.mouse.pressed {
             self.event_queue.push(Event::MouseDown {
                 state: self.curr_state.mouse.clone(),
-                button: btn.clone()
+                button: btn.clone(),
             });
         }
         self.prev_state
@@ -42,9 +42,9 @@ impl Context {
             .retain(|key| !self.curr_state.mouse.pressed.contains(key));
 
         for btn in &self.prev_state.mouse.pressed {
-            self.event_queue.push(Event::MouseUp{
+            self.event_queue.push(Event::MouseUp {
                 state: self.curr_state.mouse.clone(),
-                button: btn.clone()
+                button: btn.clone(),
             });
         }
 

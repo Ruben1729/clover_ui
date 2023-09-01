@@ -1,8 +1,9 @@
 use clover_ui::paint::{DrawingBackend, Painter};
-use clover_ui::style::{Color, COLOR_GRAY_600, COLOR_WHITE, FontManager, FontWeight, StyleSheet};
+use clover_ui::style::{Color, FontManager, FontWeight, StyleSheet, COLOR_GRAY_600, COLOR_WHITE};
 use clover_ui::ui::Ui;
 use minifb::{Key, MouseMode, ScaleMode, Window, WindowOptions};
 use std::path::Path;
+use std::time::Instant;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
@@ -85,11 +86,7 @@ fn main() {
     {
         let mut font_manager = FontManager::get_mut();
         font_manager
-            .load(
-                None,
-                FontWeight::Bold,
-                Path::new("assets/Inter-Bold.ttf"),
-            )
+            .load(None, FontWeight::Bold, Path::new("assets/Inter-Bold.ttf"))
             .expect("Unable to load font");
         font_manager
             .load(
@@ -119,34 +116,42 @@ fn main() {
     theme.set_color(COLOR_GRAY_600);
     theme.set_fontsize(19.0);
 
+    let mut counter = 0;
     let mut ui = Ui::default();
-    ui.with_style_sheet(theme);
+    ui.with_style_sheet(&theme);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         backend.clear();
 
         if window.get_mouse_down(minifb::MouseButton::Left) {
-            ui.context.set_mouse_pressed(clover_ui::state::MouseButton::Left);
+            ui.context
+                .set_mouse_pressed(clover_ui::state::MouseButton::Left);
         }
         if window.get_mouse_down(minifb::MouseButton::Right) {
-            ui.context.set_mouse_pressed(clover_ui::state::MouseButton::Right);
+            ui.context
+                .set_mouse_pressed(clover_ui::state::MouseButton::Right);
         }
         if window.get_mouse_down(minifb::MouseButton::Middle) {
-            ui.context.set_mouse_pressed(clover_ui::state::MouseButton::Middle);
+            ui.context
+                .set_mouse_pressed(clover_ui::state::MouseButton::Middle);
         }
 
-        ui.context.set_mouse_pos(window.get_unscaled_mouse_pos(MouseMode::Discard));
+        ui.context
+            .set_mouse_pos(window.get_unscaled_mouse_pos(MouseMode::Discard));
         ui.context.set_mouse_scroll(window.get_scroll_wheel());
 
         // Updates the state and generates events
         ui.context.next();
 
         ui.page(|ui| {
-            ui.flex_col(|ui| {
-                ui.flex_col(|ui| {
-                    ui.label("Save");
-                    ui.label("Cancel");
-                });
+            ui.with_size(1000, 700).flex_row(|ui| {
+                ui.h1("My clover_ui Application");
+                ui
+                    .button(|ui| {
+                        ui.label("Save");
+                    });
+
+                ui.label(format!("I've clicked {}", counter).as_str());
             });
         });
 

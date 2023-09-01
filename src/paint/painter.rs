@@ -1,6 +1,7 @@
 use crate::paint::Primitive;
-use crate::style::{Color, FontManager, FontWeight};
-use rusttype::{point, Font};
+use crate::style::{Color, FontManager};
+use rusttype::point;
+use rusttype::Scale;
 
 // Define a trait for the drawing backend
 pub trait DrawingBackend {
@@ -45,37 +46,42 @@ impl<'a> Painter<'a> {
     }
     pub fn draw(&mut self) {
         for call in &self.draw_calls {
-            match call {
+            match call.clone() {
                 Primitive::Circle {
                     x,
                     y,
                     radius,
                     color,
-                } => self.backend.draw_circle(*x, *y, *radius, *color),
+                } => self.backend.draw_circle(x, y, radius, color),
                 Primitive::Rectangle {
                     x,
                     y,
                     width,
                     height,
                     color,
-                } => self.backend.draw_rect(*x, *y, *width, *height, *color),
+                } => self.backend.draw_rect(x, y, width, height, color),
                 Primitive::Text {
                     x,
                     y,
-                    scale,
+                    font_size,
+                    font_weight,
                     content,
                     color,
                 } => {
                     let manager = FontManager::get();
                     let font = manager
-                        .get_font(None, FontWeight::Bold)
+                        .get_font(None, font_weight)
                         .expect("Unable to load font");
 
-                    let v_metrics = font.v_metrics(*scale);
+                    let scale = Scale {
+                        x: font_size,
+                        y: font_size,
+                    };
+                    let v_metrics = font.v_metrics(scale);
 
                     // layout the glyphs in a line with 20 pixels padding
                     let glyphs: Vec<_> = font
-                        .layout(content, *scale, point(*x, *y + v_metrics.ascent))
+                        .layout(content.as_str(), scale, point(x, y + v_metrics.ascent))
                         .collect();
 
                     // Loop through the glyphs in the text, positing each one on a line
@@ -85,7 +91,7 @@ impl<'a> Painter<'a> {
                             glyph.draw(|x_, y_, v| {
                                 let new_x = (x_ + bounding_box.min.x as u32) as usize;
                                 let new_y = (y_ + bounding_box.min.y as u32) as usize;
-                                let mut new_color = Color::new_u32(*color);
+                                let mut new_color = Color::new_u32(color);
                                 new_color.set_alpha((v * 255.0) as u8);
                                 self.backend.draw_pixel(new_x, new_y, new_color.get_u32());
                             });

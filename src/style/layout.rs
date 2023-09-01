@@ -14,6 +14,5 @@ impl Default for FlexDirection {
 
 #[derive(Debug, Default, Clone)]
 pub struct Layout {
-    pub(crate) flex_direction: FlexDirection
+    pub(crate) flex_direction: FlexDirection,
 }
-

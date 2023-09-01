@@ -1,12 +1,12 @@
 use crate::element::{Element, ElementType};
 use crate::paint::Drawable;
-use crate::style::{COLOR_WHITE, FlexDirection, Layout};
+use crate::style::{FlexDirection, Layout, COLOR_WHITE};
 use crate::ui::Ui;
 
 impl Ui {
     pub fn page(&mut self, add_contents: impl FnOnce(&mut Ui)) {
         let layout = Layout {
-            flex_direction: FlexDirection:: Col
+            flex_direction: FlexDirection::Col,
         };
         let mut new_element = Element::new(ElementType::Container(layout.clone()));
 
@@ -23,7 +23,11 @@ impl Ui {
     // 1- Style
     // 2- Handle Event
     // 3- Add Content
-    pub fn create_layout(&mut self, new_element: &mut Element, add_contents: impl FnOnce(&mut Ui)) {
+    pub fn create_layout(
+        &mut self,
+        new_element: &mut Element,
+        add_contents: impl FnOnce(&mut Ui),
+    ) -> &Self {
         let layout;
         if let ElementType::Container(elem_layout) = &new_element.ty {
             layout = elem_layout.clone();
@@ -33,25 +37,30 @@ impl Ui {
 
         // Style and handle events
         self.inherit_style(new_element);
-        self.dispatch_events(new_element);
 
         // Update cursor
         self.move_to_cursor(new_element);
+        self.dispatch_events(new_element);
+
+        // We update the layout so the cursor gets moved to the proper corner in the content
+        self.parent_layout.push_front(layout);
         self.move_cursor_to_content(new_element);
 
         // Draw before adding children so children get rendered next
         self.draw_calls.extend(new_element.draw());
 
         // Set the layout for the children
-        self.parent_layout.push_front(layout);
         add_contents(self);
         self.parent_layout.pop_front();
 
         self.move_cursor_to_next_element(&new_element);
+        self.latest_element = self.running_counter;
+        self
     }
+
     pub fn flex_col(&mut self, add_contents: impl FnOnce(&mut Ui)) {
         let mut new_element = Element::new(ElementType::Container(Layout {
-            flex_direction: FlexDirection::Col
+            flex_direction: FlexDirection::Col,
         }));
         // TODO: we unbind here so that the page (which is the base) doesn't have their styles unbinded as
         // all it's children should inherit from it.
@@ -59,18 +68,19 @@ impl Ui {
         self.unbind_styles(new_element.uuid());
     }
 
-    pub fn flex_row(&mut self, add_contents: impl FnOnce(&mut Ui)) {
+    pub fn flex_row(&mut self, add_contents: impl FnOnce(&mut Ui)) -> &Self {
         let mut new_element = Element::new(ElementType::Container(Layout {
-            flex_direction: FlexDirection::Row
+            flex_direction: FlexDirection::Row,
         }));
 
         self.create_layout(&mut new_element, add_contents);
         self.unbind_styles(new_element.uuid());
+        self
     }
 
     pub fn flex_row_reverse(&mut self, add_contents: impl FnOnce(&mut Ui)) {
         let mut new_element = Element::new(ElementType::Container(Layout {
-            flex_direction: FlexDirection::RowReverse
+            flex_direction: FlexDirection::RowReverse,
         }));
 
         self.create_layout(&mut new_element, add_contents);
@@ -79,7 +89,7 @@ impl Ui {
 
     pub fn flex_col_reverse(&mut self, add_contents: impl FnOnce(&mut Ui)) {
         let mut new_element = Element::new(ElementType::Container(Layout {
-            flex_direction: FlexDirection::ColReverse
+            flex_direction: FlexDirection::ColReverse,
         }));
 
         self.create_layout(&mut new_element, add_contents);
