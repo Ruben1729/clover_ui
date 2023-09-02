@@ -1,6 +1,16 @@
+use bytemuck::{Pod, Zeroable};
 use crate::style::FontWeight;
 use rusttype::Scale;
 
+#[cfg(feature = "primitive_vertex")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct Primitive {
+    pub position: [f32; 2],
+    pub color: u32,
+}
+
+#[cfg(feature = "primitive_shapes")]
 #[derive(Debug, Clone)]
 pub enum Primitive {
     Circle {

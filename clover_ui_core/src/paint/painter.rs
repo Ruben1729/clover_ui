@@ -44,6 +44,12 @@ impl<'a> Painter<'a> {
     pub fn extend(&mut self, calls: Vec<Primitive>) {
         self.draw_calls.extend(calls);
     }
+    #[cfg(feature = "primitive_vertex")]
+    pub fn draw(&mut self) {
+
+    }
+
+    #[cfg(feature = "primitive_shapes")]
     pub fn draw(&mut self) {
         for call in &self.draw_calls {
             match call.clone() {

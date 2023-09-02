@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 minifb = "0.19"
+clover_ui = { path = "/run/media/rubens/ssd/projects/clover_ui" }

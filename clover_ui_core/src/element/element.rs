@@ -1,6 +1,8 @@
 use crate::element::{ElementState, ElementStateManager};
 use crate::event::Event;
+#[cfg(feature = "primitive_shapes")]
 use crate::paint::Primitive::Rectangle;
+
 use crate::paint::{Drawable, Primitive};
 use crate::state::MouseButton;
 use crate::style::{Layout, StyleSheet};
@@ -115,6 +117,60 @@ impl<'a> Element<'a> {
 }
 
 impl<'a> Drawable for Element<'a> {
+    #[cfg(feature = "primitive_vertex")]
+    fn draw(&mut self) -> Vec<Primitive> {
+        let mut primitives = Vec::new();
+        let style = self.style();
+
+        let mut x = (style.get_x() + style.get_margin().left) as f32;
+        let mut y = (style.get_y() + style.get_margin().top) as f32;
+        let mut width = (style.get_borderwidth().horizontal()
+            + style.get_padding().horizontal()
+            + style.get_width()) as f32;
+        let mut height = (style.get_borderwidth().vertical()
+            + style.get_padding().vertical()
+            + style.get_height()) as f32;
+        let mut color = style.get_bordercolor().get_u32();
+
+        primitives.push(Primitive { position: [x, y], color });
+        primitives.push(Primitive { position: [x + width, y], color });
+        primitives.push(Primitive { position: [x + width, y + height], color });
+        primitives.push(Primitive { position: [x, y], color });
+        primitives.push(Primitive { position: [x + width, y + height], color });
+        primitives.push(Primitive { position: [x, y + height], color });
+
+        x = (style.get_x() + style.get_margin().left + style.get_borderwidth().left) as f32;
+        y = (style.get_y() + style.get_margin().top + style.get_borderwidth().top) as f32;
+        width = (style.get_padding().horizontal() + style.get_width()) as f32;
+        height = (style.get_padding().vertical() + style.get_height()) as f32;
+        color = style.get_backgroundcolor().get_u32();
+
+        primitives.push(Primitive { position: [x, y], color });
+        primitives.push(Primitive { position: [x + width, y], color });
+        primitives.push(Primitive { position: [x + width, y + height], color });
+        primitives.push(Primitive { position: [x, y], color });
+        primitives.push(Primitive { position: [x + width, y + height], color });
+        primitives.push(Primitive { position: [x, y + height], color });
+
+        // match self.ty {
+        //     ElementType::Container(_) => {}
+        //     ElementType::Label(value) => {
+        //         primitives.push(Primitive::Text {
+        //             x: style.get_content_x() as f32,
+        //             y: style.get_content_y() as f32,
+        //             font_weight: style.get_fontweight(),
+        //             font_size: style.get_fontsize(),
+        //             content: value.to_string(),
+        //             color: style.get_color().get_u32(),
+        //         });
+        //     }
+        //     ElementType::TextInput(_) => {}
+        // }
+
+        primitives
+    }
+
+    #[cfg(feature = "primitive_shapes")]
     fn draw(&mut self) -> Vec<Primitive> {
         let mut primitives = Vec::new();
         let style = self.style();
