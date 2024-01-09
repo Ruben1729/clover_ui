@@ -1,2 +1,17 @@
-[workspace]
-members = ["clover_ui_core", "clover_ui_webgpu"]
+[package]
+name = "clover_ui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "clover_ui"
+path = "src/lib.rs"
+
+[dependencies]
+bytemuck = { version = "1.13.1", features = ["derive"] }
+wgpu = "0.17.0"
+winit = "0.28.6"
+pollster = "0.3"
+env_logger = "0.10"
