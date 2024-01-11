@@ -1,21 +1,36 @@
-use crate::core::{BoxModel, Node};
+use crate::core::{BoxModel, Node, PositionPx};
 use crate::styles::{Style, Display, Position, Unit};
 use crate::core::Context;
 
 pub struct BaseNode {
     style: Style,
-    children: Vec<Box<dyn Node>>
+    children: Vec<Box<dyn Node>>,
+
+    hovered: bool,
+
+    pub mouse_enter_handler: Box<dyn Fn(&mut Style, &PositionPx)>,
+    pub mouse_leave_handler: Box<dyn Fn(&mut Style, &PositionPx)>,
+    pub mouse_over_handler:  Box<dyn Fn(&mut Style, &PositionPx)>,
 }
 
 impl BaseNode {
-    pub fn new<F: FnOnce(&mut Vec<Box<dyn Node>>)>(style: Style, add_child: F) -> Box<dyn Node> {
+    pub fn new<F: FnOnce(&mut Vec<Box<dyn Node>>)>
+    (style: Style, add_child: F) -> BaseNode {
         let mut children = vec![];
         
         add_child(&mut children);
-        Box::new(Self {
+        Self {
             style,
-            children
-        })
+            children,
+            hovered: false,
+            mouse_enter_handler: Box::new(|_style, _position| {}),
+            mouse_leave_handler: Box::new(|_style, _position| {}),
+            mouse_over_handler: Box::new(|_style, _position| {})
+        }
+    }
+
+    pub fn build(self) -> Box<dyn Node> {
+        Box::new(self)
     }
 }
 
@@ -91,7 +106,6 @@ impl Node for BaseNode {
             Display::Grid => {}
         }
     }
-
     fn calculate_size(&mut self) {
         self.style.empty_box_model();
 
@@ -116,5 +130,40 @@ impl Node for BaseNode {
             Unit::Auto => self.style.box_model.content.width,
             Unit::Px(px) => px
         };
+    }
+    fn on_cursor_move(&mut self, position: &PositionPx) {
+        match (self.hovered,
+                self.style.box_model.x < position.x &&
+                self.style.box_model.width() > position.x &&
+                self.style.box_model.y < position.y &&
+                self.style.box_model.height() > position.y
+        ) {
+            (false, true) => {
+                self.hovered = true;
+
+                for child in &mut self.children {
+                    child.on_cursor_move(position);
+                }
+
+                (self.mouse_enter_handler)(&mut self.style, position);
+            },
+            (true, false) => {
+                self.hovered = false;
+
+                for child in &mut self.children {
+                    child.on_cursor_move(position);
+                }
+
+                (self.mouse_leave_handler)(&mut self.style, position);
+            },
+            (true, true) => {
+                for child in &mut self.children {
+                    child.on_cursor_move(position);
+                }
+
+               (self.mouse_over_handler)(&mut self.style, position);
+            }
+            _ => {}
+        }
     }
 }

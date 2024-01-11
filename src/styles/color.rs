@@ -1,6 +1,17 @@
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Color {
     value: u32,
+}
+
+impl From<Color> for [f32;4] {
+    fn from(value: Color) -> Self {
+        [
+            value.red() as f32 / 255.0,
+            value.green() as f32 / 255.0,
+            value.blue() as f32 / 255.0,
+            value.alpha() as f32 / 255.0
+        ]
+    }
 }
 
 impl Color {

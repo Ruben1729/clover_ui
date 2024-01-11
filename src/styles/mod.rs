@@ -2,9 +2,6 @@ mod bounds;
 mod color;
 mod display;
 pub mod preset;
-mod font_db;
-mod font_family;
-mod font_weight;
 mod position;
 mod spacing;
 mod unit;
@@ -12,15 +9,14 @@ mod unit;
 pub use self::bounds::*;
 pub use self::color::*;
 pub use self::display::*;
-pub use self::font_family::*;
-pub use self::font_weight::*;
 pub use self::position::*;
 pub use self::spacing::*;
 pub use self::unit::*;
+use glyphon::{FamilyOwned, Weight};
 
 use crate::core::{BoundsPx, BoxModel};
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Style {
     pub position: Position,
 
@@ -29,10 +25,9 @@ pub struct Style {
     pub background_color: Color,
     pub text_color: Color,
 
-    pub font_weight: FontWeight,
+    pub font_weight: Weight,
     pub font_size: Unit,
-    pub font_family: FontFamily,
-
+    pub font_family: FamilyOwned,
     pub line_height: Unit,
 
     pub margin: Spacing,
@@ -45,6 +40,30 @@ pub struct Style {
     pub border_color: Color,
 
     pub box_model: BoxModel
+}
+
+impl Default for Style {
+    fn default() -> Self {
+        Style {
+            position: Default::default(),
+            display: Default::default(),
+            background_color: Default::default(),
+            text_color: Default::default(),
+            font_weight: Weight::NORMAL,
+            font_size: Default::default(),
+            font_family: FamilyOwned::SansSerif,
+
+            line_height: Unit::Px(10),
+            margin: Default::default(),
+            padding: Default::default(),
+            content: Default::default(),
+            x: Default::default(),
+            y: Default::default(),
+            border: Default::default(),
+            border_color: Default::default(),
+            box_model: Default::default(),
+        }
+    }
 }
 
 impl Style {

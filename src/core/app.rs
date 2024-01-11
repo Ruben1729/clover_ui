@@ -4,7 +4,7 @@ use crate::nodes::BaseNode;
 use crate::core::node::{Node};
 use crate::styles::{Unit, Position, Style, Bounds};
 
-use wgpu::{ColorTargetState, TextureFormat};
+use wgpu::{ColorTargetState, CommandEncoderDescriptor, CompareFunction, DepthStencilState, Extent3d, LoadOp, MultisampleState, Operations, RenderPassDepthStencilAttachment, RenderPassDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::LogicalSize,
@@ -14,7 +14,13 @@ use winit::{
 };
 
 use bytemuck::{Pod, Zeroable};
-use crate::core::{Context, Vertex};
+use glyphon::{
+    Attrs, Buffer, Color, Family, FontSystem, Metrics, Resolution, Shaping, SwashCache, TextArea,
+    TextAtlas, TextBounds, TextRenderer,
+};
+
+use crate::core::{Context, PositionPx, Vertex};
+use crate::core::render::Primitive;
 use crate::styles::preset::color::COLOR_WHITE;
 
 
@@ -122,7 +128,7 @@ impl App {
                 content: Bounds::new(Unit::Px(width as isize), Unit::Px(height as isize)),
                 background_color: COLOR_WHITE,
                 ..Default::default()
-            }, add_child),
+            }, add_child).build(),
             title,
             width,
             height,
@@ -135,6 +141,17 @@ impl App {
     }
     
     pub fn start(self) {
+        // Default fonts
+        // FontDb::get_mut().load("Inter", FontWeight::Thin, Path::new("../../assets/fonts/Inter-Thin.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::ExtraLight, Path::new("../../assets/fonts/Inter-ExtraLight.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::Light, Path::new("../../assets/fonts/Inter-Light.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::Normal, Path::new("../../assets/fonts/Inter-Normal.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::Medium, Path::new("../../assets/fonts/Inter-Medium.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::SemiBold, Path::new("../../assets/fonts/Inter-SemiBold.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::Bold, Path::new("../../assets/fonts/Inter-Bold.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::ExtraBold, Path::new("../../assets/fonts/Inter-ExtraBold.ttf")).expect("Unable to load font");
+        // FontDb::get_mut().load("Inter", FontWeight::Black, Path::new("../../assets/fonts/Inter-Black.ttf")).expect("Unable to load font");
+
         let event_loop = EventLoop::new();
         #[allow(unused_mut)]
         let mut builder = winit::window::WindowBuilder::new()
@@ -189,6 +206,24 @@ impl App {
             )
             .await
             .expect("Failed to create device");
+
+        // Text texture
+        let depth_texture = device.create_texture(&TextureDescriptor {
+            label: Some("Texture for text"),
+            size: Extent3d {
+                width: size.width,
+                height: size.height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Depth32Float,
+            usage: TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+
+        let depth_view = depth_texture.create_view(&Default::default());
 
         // Load the shaders from disk
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -260,12 +295,12 @@ impl App {
                         wgpu::VertexAttribute {
                             offset: 0,
                             shader_location: 0,
-                            format: wgpu::VertexFormat::Float32x2,
+                            format: wgpu::VertexFormat::Float32x4,
                         },
                         wgpu::VertexAttribute {
-                            offset: std::mem::size_of::<[f32; 2]>() as wgpu::BufferAddress,
+                            offset: std::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
                             shader_location: 1,
-                            format: wgpu::VertexFormat::Uint32,
+                            format: wgpu::VertexFormat::Float32x4,
                         },
                     ],
                 }],
@@ -288,7 +323,13 @@ impl App {
                 polygon_mode: Default::default(),
                 conservative: false,
             },
-            depth_stencil: None,
+            depth_stencil: Some(DepthStencilState {
+                format: TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: CompareFunction::Less,
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
             multisample: wgpu::MultisampleState {
                 count: 1,
                 mask: !0,
@@ -298,7 +339,7 @@ impl App {
         });
 
         let mut config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: TextureUsages::RENDER_ATTACHMENT,
             format: swapchain_format,
             width: size.width,
             height: size.height,
@@ -309,6 +350,17 @@ impl App {
 
         surface.configure(&device, &config);
 
+        let mut font_system = FontSystem::new();
+        let mut cache = SwashCache::new();
+        let mut atlas = TextAtlas::new(&device, &queue, swapchain_format);
+        let mut text_renderer = TextRenderer::new(&mut atlas, &device, MultisampleState::default(), Some(DepthStencilState {
+            format: TextureFormat::Depth32Float,
+            depth_write_enabled: true,
+            depth_compare: CompareFunction::Less,
+            stencil: Default::default(),
+            bias: Default::default(),
+        }));
+
         event_loop.run(move |event, _, control_flow| {
             // Have the closure take ownership of the resources.
             // `event_loop.run` never returns, therefore we must do this to ensure
@@ -316,8 +368,6 @@ impl App {
             let _ = (&instance, &adapter, &shader, &pipeline_layout);
 
             let mut ctx = Context::default();
-            self.root.calculate_size();
-            self.root.render(None, &mut ctx);
 
             *control_flow = ControlFlow::Wait;
             match event {
@@ -332,9 +382,82 @@ impl App {
                     // On macos the window needs to be redrawn manually after resizing
                     window.request_redraw();
                 }
+                Event::WindowEvent {
+                    event: WindowEvent::CursorMoved{ position, ..},
+                    ..
+                } => {
+                    self.root.on_cursor_move(&PositionPx {
+                        x: position.x as isize,
+                        y: position.y as isize
+                    });
+
+                    window.request_redraw();
+                }
                 Event::RedrawRequested(_) => {
+                    self.root.calculate_size();
+                    self.root.render(None, &mut ctx);
+
                     let mut vertex_data = ctx.get_vertex_data();
                     vertex_data.reverse();
+
+                    let mut text_buffer_data = vec![];
+
+                    for text in ctx.get_text_data() {
+                        match text {
+                            Primitive::Text { x, y, z, value, width, height, family, font_size, weight, line_height, color } => {
+                                let mut buffer = Buffer::new(
+                                    &mut font_system,
+                                    Metrics::new(font_size.clone(), line_height.clone()));
+
+                                buffer.set_size(
+                                    &mut font_system,
+                                    *width,
+                                    *height
+                                );
+                                buffer.set_text(
+                                    &mut font_system,
+                                    value,
+                                    Attrs::new().family(family.as_family()).weight(*weight).metadata(*z as usize),
+                                    Shaping::Advanced);
+                                buffer.shape_until_scroll(&mut font_system);
+
+                                text_buffer_data.push((buffer, *x, *y, *z, *width, *height, *color));
+                            },
+                            _ => {}
+                        }
+                    }
+
+                    let text_areas = text_buffer_data.iter().map(|(buffer, x, y, z, width, height, color)|
+                        TextArea {
+                            buffer: &buffer,
+                            left: *x,
+                            top: *y,
+                            scale: 1.0,
+                            bounds: TextBounds {
+                                left: 0,
+                                top: 0,
+                                right: (*x + *width) as i32,
+                                bottom: (*y + *height) as i32,
+                            },
+                            default_color: Color::rgba(color.red(), color.green(), color.blue(), color.alpha()),
+                        }
+                    ).collect::<Vec<_>>();
+
+                    text_renderer
+                        .prepare_with_depth(
+                            &device,
+                            &queue,
+                            &mut font_system,
+                            &mut atlas,
+                            Resolution {
+                                width: config.width,
+                                height: config.height,
+                            },
+                            text_areas,
+                            &mut cache,
+                            |z| { z as f32 / 10000.0  }
+                        )
+                        .unwrap();
 
                     let your_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                         label: Some("Vertex Buffer"),
@@ -361,17 +484,28 @@ impl App {
                                     store: true,
                                 },
                             })],
-                            depth_stencil_attachment: None,
+                            depth_stencil_attachment: Some(RenderPassDepthStencilAttachment{
+                                view: &depth_view,
+                                depth_ops: Some(Operations {
+                                    load: LoadOp::Clear(1.0),
+                                    store: true,
+                                }),
+                                stencil_ops: None,
+                            }),
                         });
                         rpass.set_bind_group(0, &bind_group, &[]);
 
                         rpass.set_pipeline(&render_pipeline);
                         rpass.set_vertex_buffer(0, your_vertex_buffer.slice(..));
                         rpass.draw(0..vertex_data.len() as u32, 0..1);
+
+                        text_renderer.render(&atlas, &mut rpass).unwrap();
                     }
 
                     queue.submit(Some(encoder.finish()));
                     frame.present();
+
+                    atlas.trim();
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,

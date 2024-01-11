@@ -1,5 +1,5 @@
 use clover_ui::core::{AppBuilder};
-use clover_ui::nodes::BaseNode;
+use clover_ui::nodes::{BaseNode, TextNode};
 use clover_ui::styles::{Bounds, Spacing, Style, Unit};
 use clover_ui::styles::preset::color::*;
 
@@ -14,7 +14,7 @@ fn main() {
                     ..Default::default()
                 }
             , |children| {
-                children.push(BaseNode::new(
+                let mut base_node = BaseNode::new(
                     Style {
                         content: Bounds::px(30, 30),
                         background_color: COLOR_RED_700,
@@ -24,8 +24,22 @@ fn main() {
                         border: Spacing::uniform(10),
                         ..Default::default()
                     },
-                    |_|{}
-                ));
+                    |children|{
+                        children.push(TextNode::new("Hello World".to_string(),
+                        Style {
+                            text_color: COLOR_PINK_900,
+                            font_size: Unit::Px(30),
+                            line_height: Unit::Px(42),
+                            content: Bounds {
+                                width: Unit::Px(600),
+                                height: Unit::Px(160)
+                            },
+                            .. Default::default()
+                        }))
+                    }
+                );
+
+                children.push(base_node.build());
                 children.push(BaseNode::new(
                     Style {
                         content: Bounds::px(100, 100),
@@ -34,7 +48,7 @@ fn main() {
                         ..Default::default()
                     },
                     |_|{}
-                ));
+                ).build());
                 children.push(BaseNode::new(
                     Style {
                         content: Bounds::px(10, 10),
@@ -42,7 +56,7 @@ fn main() {
                         ..Default::default()
                     },
                     |_|{}
-                ));
-            }));
+                ).build());
+            }).build());
         }).start();
 }

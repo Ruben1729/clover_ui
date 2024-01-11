@@ -10,21 +10,15 @@ struct Uniforms {
 @group(0) @binding(0) var <uniform> uniforms: Uniforms;
 
 @vertex
-fn vs_main(@location(0) a_position: vec2<f32>, @location(1) a_color: u32) -> VertexOutput {
-    // Unpack the u32 color into 4 components
-    let a: f32 = f32((a_color >> 24u) & 0xFFu) / 255.0;
-    let r: f32 = f32((a_color >> 16u) & 0xFFu) / 255.0;
-    let g: f32 = f32((a_color >> 8u) & 0xFFu) / 255.0;
-    let b: f32 = f32(a_color & 0xFFu) / 255.0;
-
-    var position = vec2<f32>(
-                       (a_position.x / uniforms.screenSize.x - 0.5) * 2.0,
-                       (0.5 - a_position.y / uniforms.screenSize.y) * 2.0
-                     );
-
+fn vs_main(@location(0) a_position: vec4<f32>, @location(1) a_color: vec4<f32>) -> VertexOutput {
     var result: VertexOutput;
-    result.out_color = vec4<f32>(r, g, b, a);
-    result.position = vec4<f32>(position,0.0,1.0);
+    result.out_color = a_color;
+    result.position = vec4<f32>(
+                       (a_position.x / uniforms.screenSize.x - 0.5) * 2.0,
+                       (0.5 - a_position.y / uniforms.screenSize.y) * 2.0,
+                       a_position.z / 10000.0,
+                       a_position.w
+                     );
 
     // Output the transformed vertex position
     return result;

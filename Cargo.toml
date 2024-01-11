@@ -11,9 +11,9 @@ path = "src/lib.rs"
 
 [dependencies]
 bytemuck = { version = "1.13.1", features = ["derive"] }
-wgpu = "0.17.0"
+wgpu = "0.16.3"
 winit = "0.28.6"
 pollster = "0.3"
 env_logger = "0.10"
 lazy_static = "1.4.0"
-rusttype = "0.9.3"
+glyphon = "0.3.0"
