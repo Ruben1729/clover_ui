@@ -1,9 +1,8 @@
 use std::borrow::Cow;
 
 use crate::nodes::BaseNode;
-use crate::core::render::Primitive;
-use crate::core::node::{Style, Node};
-use crate::styles::{Unit, Position};
+use crate::core::node::{Node};
+use crate::styles::{Unit, Position, Style, Bounds};
 
 use wgpu::{ColorTargetState, TextureFormat};
 use wgpu::util::DeviceExt;
@@ -15,13 +14,9 @@ use winit::{
 };
 
 use bytemuck::{Pod, Zeroable};
+use crate::core::{Context, Vertex};
+use crate::styles::preset::color::COLOR_WHITE;
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, Pod, Zeroable)]
-pub struct Vertex {
-    pub position: [f32; 2],
-    pub color: u32,
-}
 
 // Define the uniform data
 #[repr(C)]
@@ -30,26 +25,131 @@ struct Uniforms {
     screen_size: [f32; 2],
 }
 
+#[derive(Default, Debug)]
+pub struct AppBuilder {
+    min_width: Option<usize>,
+    min_height: Option<usize>,
+
+    width: Option<usize>,
+    height: Option<usize>,
+
+    max_width: Option<usize>,
+    max_height: Option<usize>,
+
+    title: String,
+
+    resizable: Option<bool>
+}
+
+impl AppBuilder {
+    pub fn new(title: String) -> Self {
+        Self {
+            title,
+            .. Default::default()
+        }
+    }
+
+    pub fn with_size(mut self, width: usize, height: usize) -> Self {
+        self.width = Some(width);
+        self.height = Some(height);
+        self
+    }
+
+    pub fn with_min_size(mut self, min_width: usize, min_height: usize) -> Self {
+        self.min_width = Some(min_width);
+        self.min_height = Some(min_height);
+        self
+    }
+
+    pub fn with_max_size(mut self, max_width: usize, max_height: usize) -> Self {
+        self.max_width = Some(max_width);
+        self.max_height = Some(max_height);
+        self
+    }
+
+    pub fn resizable(mut self, resizable: bool) -> Self {
+        self.resizable = Some(resizable);
+        self
+    }
+
+    pub fn build<F: FnOnce(&mut Vec<Box<dyn Node>>)>(self, add_child: F) -> App {
+        App::new(
+            self.title,
+            self.width.unwrap_or(1280),
+            self.height.unwrap_or(720),
+            self.resizable.unwrap_or(true),
+            self.min_width,
+            self.min_height,
+            self.max_width,
+            self.max_height,
+            add_child,
+        )
+    }
+}
+
 pub struct App {
     root: Box<dyn Node>,
+
+    title: String,
+
+    resizable: bool,
+
+    width: usize,
+    height: usize,
+
+    min_width: Option<usize>,
+    min_height: Option<usize>,
+
+    max_width: Option<usize>,
+    max_height: Option<usize>,
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new<F: FnOnce(&mut Vec<Box<dyn Node>>)>(
+        title: String,
+        width: usize,
+        height: usize,
+        resizable: bool,
+        min_width: Option<usize>,
+        min_height: Option<usize>,
+        max_width: Option<usize>,
+        max_height: Option<usize>,
+        add_child: F
+    ) -> Self {
         Self {
             root: BaseNode::new(Style {
-                position: Position{ x: Unit::Px(0), y: Unit::Px(0) },
+                position: Position::Absolute(Unit::Px(0), Unit::Px(0)),
+                content: Bounds::new(Unit::Px(width as isize), Unit::Px(height as isize)),
+                background_color: COLOR_WHITE,
                 ..Default::default()
-            }, |_|{})
+            }, add_child),
+            title,
+            width,
+            height,
+            min_width,
+            min_height,
+            max_width,
+            max_height,
+            resizable
         }
     }
     
-    pub fn start(&mut self) {
+    pub fn start(self) {
         let event_loop = EventLoop::new();
         #[allow(unused_mut)]
-        let mut builder = winit::window::WindowBuilder::new().with_inner_size(
-            LogicalSize::new(300, 300)
-            );
+        let mut builder = winit::window::WindowBuilder::new()
+            .with_inner_size(LogicalSize::new(self.width as f32, self.height as f32))
+            .with_title(self.title.clone())
+            .with_resizable(self.resizable);
+
+        if let (Some(min_width), Some(min_height)) = (self.min_width.clone(), self.min_height.clone()) {
+            builder = builder.with_min_inner_size(LogicalSize::new(min_width as f32, min_height as f32));
+        }
+
+        if let (Some(max_width), Some(max_height)) = (self.max_width.clone(), self.max_height.clone()) {
+            builder = builder.with_max_inner_size(LogicalSize::new(max_width as f32, max_height as f32));
+        }
+
         let window = builder.build(&event_loop).unwrap();
 
         #[cfg(not(target_arch = "wasm32"))]
@@ -58,59 +158,37 @@ impl App {
             pollster::block_on(self.run(event_loop, window));
         }
     }
-    
-    async fn run(&mut self, event_loop: EventLoop<()>, window: Window) {
+
+    async fn run(mut self, event_loop: EventLoop<()>, window: Window) {
         let size = window.inner_size();
 
         let instance = wgpu::Instance::default();
 
         let surface = unsafe { instance.create_surface(&window) }.unwrap();
         let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::default(),
-            force_fallback_adapter: false,
-            // Request an adapter which can render to our surface
-            compatible_surface: Some(&surface),
-        })
-        .await
-        .expect("Failed to find an appropriate adapter");
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::default(),
+                force_fallback_adapter: false,
+                // Request an adapter which can render to our surface
+                compatible_surface: Some(&surface),
+            })
+            .await
+            .expect("Failed to find an appropriate adapter");
 
         // Create the logical device and command queue
         let (device, queue) = adapter
-        .request_device(
-            &wgpu::DeviceDescriptor {
-                label: None,
-                features: wgpu::Features::empty(),
-                // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-                limits: wgpu::Limits::downlevel_webgl2_defaults()
-                    .using_resolution(adapter.limits()),
-            },
-            None,
-        )
-        .await
-        .expect("Failed to create device");
-
-
-        let x = 0.0;
-        let y = 0.0;
-        let width = 100.0;
-        let height = 100.0;
-        let color = 0xFF0000FFu32;
-
-        let vertex_data = vec![
-            Vertex { position: [x, y], color },
-            Vertex { position: [x + width, y], color },
-            Vertex { position: [x + width, y + height], color },
-            Vertex { position: [x, y], color },
-            Vertex { position: [x + width, y + height], color },
-            Vertex { position: [x, y + height], color },
-        ];
-        
-        let your_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(&vertex_data),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
+            .request_device(
+                &wgpu::DeviceDescriptor {
+                    label: None,
+                    features: wgpu::Features::empty(),
+                    // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
+                    limits: wgpu::Limits::downlevel_webgl2_defaults()
+                        .using_resolution(adapter.limits()),
+                },
+                None,
+            )
+            .await
+            .expect("Failed to create device");
 
         // Load the shaders from disk
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -180,16 +258,16 @@ impl App {
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: &[
                         wgpu::VertexAttribute {
-                        offset: 0,
+                            offset: 0,
                             shader_location: 0,
                             format: wgpu::VertexFormat::Float32x2,
                         },
                         wgpu::VertexAttribute {
-                        offset: std::mem::size_of::<[f32; 2]>() as wgpu::BufferAddress,
+                            offset: std::mem::size_of::<[f32; 2]>() as wgpu::BufferAddress,
                             shader_location: 1,
                             format: wgpu::VertexFormat::Uint32,
                         },
-                        ],
+                    ],
                 }],
             },
             fragment: Some(wgpu::FragmentState {
@@ -198,7 +276,7 @@ impl App {
                 targets: &[Some(ColorTargetState {
                     format: TextureFormat::Bgra8UnormSrgb,
                     write_mask: wgpu::ColorWrites::ALL,
-                    blend: Some(wgpu::BlendState::REPLACE),
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                 })],
             }),
             primitive: wgpu::PrimitiveState {
@@ -237,11 +315,15 @@ impl App {
             // the resources are properly cleaned up.
             let _ = (&instance, &adapter, &shader, &pipeline_layout);
 
+            let mut ctx = Context::default();
+            self.root.calculate_size();
+            self.root.render(None, &mut ctx);
+
             *control_flow = ControlFlow::Wait;
             match event {
                 Event::WindowEvent {
                     event: WindowEvent::Resized(size),
-                ..
+                    ..
                 } => {
                     // Reconfigure the surface with the new size
                     config.width = size.width;
@@ -251,14 +333,23 @@ impl App {
                     window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
+                    let mut vertex_data = ctx.get_vertex_data();
+                    vertex_data.reverse();
+
+                    let your_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Vertex Buffer"),
+                        contents: bytemuck::cast_slice(&vertex_data),
+                        usage: wgpu::BufferUsages::VERTEX,
+                    });
+
                     let frame = surface
-                    .get_current_texture()
-                    .expect("Failed to acquire next swap chain texture");
+                        .get_current_texture()
+                        .expect("Failed to acquire next swap chain texture");
                     let view = frame
-                    .texture
-                    .create_view(&wgpu::TextureViewDescriptor::default());
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default());
                     let mut encoder =
-                    device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+                        device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
                     {
                         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                             label: None,
@@ -276,7 +367,7 @@ impl App {
 
                         rpass.set_pipeline(&render_pipeline);
                         rpass.set_vertex_buffer(0, your_vertex_buffer.slice(..));
-                        rpass.draw(0..6, 0..1);
+                        rpass.draw(0..vertex_data.len() as u32, 0..1);
                     }
 
                     queue.submit(Some(encoder.finish()));
@@ -284,11 +375,10 @@ impl App {
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
-                ..
+                    ..
                 } => *control_flow = ControlFlow::Exit,
                 _ => {}
             }
         });
     }
-
 }

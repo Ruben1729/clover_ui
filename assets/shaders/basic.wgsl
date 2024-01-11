@@ -12,10 +12,10 @@ struct Uniforms {
 @vertex
 fn vs_main(@location(0) a_position: vec2<f32>, @location(1) a_color: u32) -> VertexOutput {
     // Unpack the u32 color into 4 components
-    let r: f32 = f32((a_color >> 24u) & 0xFFu) / 255.0;
-    let g: f32 = f32((a_color >> 16u) & 0xFFu) / 255.0;
-    let b: f32 = f32((a_color >> 8u) & 0xFFu) / 255.0;
-    let a: f32 = f32(a_color & 0xFFu) / 255.0;
+    let a: f32 = f32((a_color >> 24u) & 0xFFu) / 255.0;
+    let r: f32 = f32((a_color >> 16u) & 0xFFu) / 255.0;
+    let g: f32 = f32((a_color >> 8u) & 0xFFu) / 255.0;
+    let b: f32 = f32(a_color & 0xFFu) / 255.0;
 
     var position = vec2<f32>(
                        (a_position.x / uniforms.screenSize.x - 0.5) * 2.0,

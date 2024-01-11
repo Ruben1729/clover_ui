@@ -1,4 +1,5 @@
-use crate::core::{Node, Style};
+use crate::core::{BoxModel, Context, Node};
+use crate::styles::Style;
 
 pub struct TextNode {
     style: Style,
@@ -21,5 +22,8 @@ impl Node for TextNode {
     
     fn get_children<'a>(&'a self) -> Box<dyn Iterator<Item = &Box<dyn Node>> + 'a> {
         Box::new(std::iter::empty())
+    }
+    fn render(&mut self, _parent: Option<&BoxModel>, _ctx: &mut Context) {
+
     }
 }
