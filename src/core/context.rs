@@ -28,7 +28,7 @@ pub struct Context {
 
 impl Context {
     pub fn get_text_data(&self) -> Filter<Iter<Primitive>, fn(&& Primitive) -> bool> {
-        self.render_calls.iter().filter(|v| if let Primitive::Text { .. } = v { true } else { false })
+        self.render_calls.iter().filter(|v| matches!(v, Primitive::Text { .. }))
     }
     pub fn get_vertex_data(&self) -> Vec<Vertex> {
         let mut vertex_data = vec![];
@@ -67,7 +67,7 @@ impl Context {
                 z: self.current_depth,
                 width: (box_model.padding.horizontal() + box_model.content.width) as f32,
                 height: (box_model.padding.vertical() + box_model.content.height) as f32,
-                color: style.background_color.clone(),
+                color: style.background_color,
             });
 
             self.current_depth += 1.0;
@@ -81,7 +81,7 @@ impl Context {
                 z: self.current_depth,
                 width: (box_model.border.horizontal() + box_model.padding.horizontal() + box_model.content.width) as f32,
                 height: (box_model.border.vertical() + box_model.padding.vertical() + box_model.content.height) as f32,
-                color: style.border_color.clone(),
+                color: style.border_color
             });
 
             self.current_depth += 1.0;
@@ -101,8 +101,8 @@ impl Context {
             self.current_depth += 1.0;
         }
     }
-    pub fn draw_text(&mut self, value: &String, style: &Style) {
-        if value.trim().len() <= 0 {
+    pub fn draw_text(&mut self, value: String, style: &Style) {
+        if value.trim().is_empty() {
             return;
         }
 
@@ -111,7 +111,7 @@ impl Context {
                 x: style.box_model.x as f32,
                 y: style.box_model.y as f32,
                 z: self.current_depth,
-                value: value.clone(),
+                value,
                 width: style.box_model.width() as f32,
                 height: style.box_model.height() as f32,
                 family: style.font_family.clone(),

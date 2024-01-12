@@ -29,6 +29,6 @@ impl Node for TextNode {
         self.style.box_model.content.height = self.style.content.height.to_pixels();
     }
     fn render(&mut self, _parent: Option<&BoxModel>, ctx: &mut Context) {
-        ctx.draw_text(&self.value, &self.style);
+        ctx.draw_text(self.value.clone(), &self.style);
     }
 }

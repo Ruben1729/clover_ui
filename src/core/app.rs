@@ -4,7 +4,7 @@ use crate::nodes::BaseNode;
 use crate::core::node::{Node};
 use crate::styles::{Unit, Position, Style, Bounds};
 
-use wgpu::{ColorTargetState, CommandEncoderDescriptor, CompareFunction, DepthStencilState, Extent3d, LoadOp, MultisampleState, Operations, RenderPassDepthStencilAttachment, RenderPassDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use wgpu::{ColorTargetState, CompareFunction, DepthStencilState, Extent3d, LoadOp, MultisampleState, Operations, RenderPassDepthStencilAttachment, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::LogicalSize,
@@ -15,7 +15,7 @@ use winit::{
 
 use bytemuck::{Pod, Zeroable};
 use glyphon::{
-    Attrs, Buffer, Color, Family, FontSystem, Metrics, Resolution, Shaping, SwashCache, TextArea,
+    Attrs, Buffer, Color, FontSystem, Metrics, Resolution, Shaping, SwashCache, TextArea,
     TextAtlas, TextBounds, TextRenderer,
 };
 
@@ -407,7 +407,7 @@ impl App {
                             Primitive::Text { x, y, z, value, width, height, family, font_size, weight, line_height, color } => {
                                 let mut buffer = Buffer::new(
                                     &mut font_system,
-                                    Metrics::new(font_size.clone(), line_height.clone()));
+                                    Metrics::new(*font_size, *line_height));
 
                                 buffer.set_size(
                                     &mut font_system,
@@ -429,7 +429,7 @@ impl App {
 
                     let text_areas = text_buffer_data.iter().map(|(buffer, x, y, z, width, height, color)|
                         TextArea {
-                            buffer: &buffer,
+                            buffer,
                             left: *x,
                             top: *y,
                             scale: 1.0,

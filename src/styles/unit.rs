@@ -5,9 +5,9 @@ pub enum Unit {
     Px(isize)
 }
 
-impl Into<isize> for Unit {
-    fn into(self) -> isize {
-        match self {
+impl From<Unit> for isize {
+    fn from(val: Unit) -> Self {
+        match val {
             Unit::Auto => 0,
             Unit::Px(px) => px
         }
@@ -18,7 +18,7 @@ impl Unit {
     pub fn to_pixels(&self) -> isize {
         match self {
             Unit::Auto => 0,
-            Unit::Px(px) => px.clone()
+            Unit::Px(px) => *px
         }
     }
 }
